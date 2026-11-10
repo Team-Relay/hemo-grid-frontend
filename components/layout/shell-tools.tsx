@@ -1,4 +1,4 @@
-/** Interactive header tools; logout is a Server Action so browser code never handles the JWT. */
+/** Interactive header tools with reusable loading spinners on session and navigation actions. */
 
 "use client";
 
@@ -8,7 +8,6 @@ import {
   CheckCheck,
   ChevronDown,
   Clock3,
-  LoaderCircle,
   LogOut,
   Plus,
   Search,
@@ -16,13 +15,15 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 
 import { logoutAction } from "@/app/actions/auth";
+import { revalidateProviderDataAction } from "@/app/actions/provider";
 import type { AppRole, NavigationItem } from "@/components/layout/app-shell";
-import { cn } from "@/components/ui/core";
-import { PendingLink } from "@/components/ui/pending-link";
+import { LoadingSpinner, PendingLink, cn } from "@/components/ui/core";
+import { clearClientSessionCookie } from "@/lib/auth/client-session";
 
 interface ShellConfig {
   organization: string;
@@ -51,40 +52,95 @@ function SessionActionButton({
     <button
       type="submit"
       disabled={pending}
+      aria-busy={pending || undefined}
       className="min-h-[38px] flex w-full items-center gap-[9px] border-0 bg-transparent px-[9px] text-left text-[#465350] rounded-[8px] text-[10.5px] hover:text-ink hover:bg-surface-muted disabled:cursor-wait disabled:opacity-60"
     >
       {pending ? (
-        <LoaderCircle
-          size={15}
-          strokeWidth={1.8}
-          className="animate-[spin_700ms_linear_infinite]"
-        />
+        <LoadingSpinner size={15} label={pendingLabel} />
       ) : (
-        <Icon size={15} strokeWidth={1.8} />
+        <>
+          <Icon size={15} strokeWidth={1.8} />
+          <span>{label}</span>
+        </>
       )}
-      {pending ? pendingLabel : label}
     </button>
+  );
+}
+
+function ShellActionButton({
+  action,
+}: {
+  action: { label: string; href: string };
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
+
+  const isAnchorOnly = action.href.startsWith("#") || action.href.startsWith(`${pathname}#`);
+
+  if (isAnchorOnly) {
+    return (
+      <button
+        type="button"
+        disabled={isPending}
+        aria-busy={isPending || undefined}
+        onClick={() => {
+          startTransition(async () => {
+            try {
+              await revalidateProviderDataAction();
+              router.refresh();
+            } finally {
+              const hash = action.href.split("#")[1];
+              if (hash) {
+                document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+              }
+            }
+          });
+        }}
+        className="h-10 inline-flex items-center gap-2 px-[17px] rounded-full text-[#fff] bg-brand text-[12.5px] font-[650] shadow-[0_2px_8px_rgba(67,56,202,0.18)] transition-transform duration-180 ease-in-out whitespace-nowrap hover:bg-brand-dark hover:-translate-y-[1px] disabled:cursor-wait disabled:opacity-85"
+      >
+        {isPending ? (
+          <LoadingSpinner size={15} label="Updating…" />
+        ) : (
+          <>
+            {action.label}
+            <Plus size={15} strokeWidth={1.8} />
+          </>
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <PendingLink
+      href={action.href}
+      className="h-10 inline-flex items-center gap-2 px-[17px] rounded-full text-[#fff] bg-brand text-[12.5px] font-[650] shadow-[0_2px_8px_rgba(67,56,202,0.18)] transition-transform duration-180 ease-in-out whitespace-nowrap hover:bg-brand-dark hover:-translate-y-[1px]"
+      pendingLabel="Opening…"
+    >
+      {action.label}
+      <Plus size={15} strokeWidth={1.8} />
+    </PendingLink>
   );
 }
 
 const notifications = [
   {
     title: "Critical request accepted",
-    detail: "Maitama Blood Centre reserved 3 O− red cell units.",
+    detail: "Nairobi RBTC reserved 3 O− red cell units (3.8°C verified).",
     time: "2 min ago",
     href: "/hospital/requests/req-0142",
     tone: "success",
   },
   {
     title: "Transfer is in transit",
-    detail: "HG-2026-0140 is expected in approximately 18 minutes.",
+    detail: "HG-2026-0140 is expected in approximately 1.12 hrs via Thika corridor.",
     time: "14 min ago",
     href: "/hospital/requests/req-0140",
     tone: "info",
   },
   {
-    title: "AB− availability is low",
-    detail: "Only 14 free units are visible across the network.",
+    title: "Cold-chain quarantine active",
+    detail: "111 heat-exposed units (>6°C) automatically excluded across the grid.",
     time: "22 min ago",
     href: "/hospital/network",
     tone: "warning",
@@ -156,16 +212,7 @@ export function ShellTools({ role, config }: { role: AppRole; config: ShellConfi
 
   return (
     <div className="flex items-center gap-2 relative ml-auto" ref={toolsRef}>
-      {config.action && (
-        <PendingLink
-          href={config.action.href}
-          className="h-10 inline-flex items-center gap-2 px-[17px] rounded-full text-[#fff] bg-brand text-[12.5px] font-[650] shadow-[0_2px_8px_rgba(91,92,226,0.18)] transition-transform duration-180 ease-in-out whitespace-nowrap hover:bg-brand-dark hover:-translate-y-[1px]"
-          pendingLabel="Opening…"
-        >
-          {config.action.label}
-          <Plus size={15} strokeWidth={1.8} />
-        </PendingLink>
-      )}
+      {config.action && <ShellActionButton action={config.action} />}
 
       <div className="relative">
         <button
@@ -352,14 +399,24 @@ export function ShellTools({ role, config }: { role: AppRole; config: ShellConfi
               </div>
             </div>
             <div className="grid p-[7px]">
-              <form action={logoutAction}>
+              <form
+                action={logoutAction}
+                onSubmit={() => {
+                  clearClientSessionCookie();
+                }}
+              >
                 <SessionActionButton
                   icon={UserRound}
                   label="Switch workspace"
                   pendingLabel="Switching…"
                 />
               </form>
-              <form action={logoutAction}>
+              <form
+                action={logoutAction}
+                onSubmit={() => {
+                  clearClientSessionCookie();
+                }}
+              >
                 <SessionActionButton icon={LogOut} label="Sign out" pendingLabel="Signing out…" />
               </form>
             </div>

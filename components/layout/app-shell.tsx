@@ -1,4 +1,4 @@
-/** Shared authenticated shell with role-aware navigation and explicit outage status. */
+/** Shared authenticated shell with role-aware navigation, direct backend sync, and explicit outage status. */
 
 "use client";
 
@@ -15,11 +15,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { ShellTools } from "@/components/layout/shell-tools";
-import { cn } from "@/components/ui/core";
+import { Button, FeedbackBanner, cn } from "@/components/ui/core";
+import { getCurrentUser } from "@/lib/api/auth";
 import type { BackendUser, UserRole } from "@/lib/api/backend-types";
+import {
+  getBloodRequest,
+  getBloodRequestCandidates,
+  listBloodRequests,
+} from "@/lib/api/blood-requests";
+import { listInventory } from "@/lib/api/inventory";
+import { getCurrentOrganization } from "@/lib/api/organizations";
+import { getProviderRequest, listProviderRequests } from "@/lib/api/provider-requests";
+import { getClientAccessToken } from "@/lib/auth/client-session";
 
 export type AppRole = "hospital" | "blood-bank" | "admin";
 
@@ -85,6 +95,80 @@ function initialsFor(fullName: string): string {
   );
 }
 
+/**
+ * Mirrors route reads directly from the browser to the Spring Boot backend
+ * (`http://localhost:8080/api/v1` locally or the Render URL in production)
+ * so every workspace view is visibly backed by the Java API in DevTools Network.
+ */
+async function syncRouteWithBackend(pathname: string, accessToken: string): Promise<void> {
+  if (pathname === "/hospital/dashboard") {
+    await Promise.allSettled([
+      getCurrentOrganization(accessToken),
+      listBloodRequests(accessToken),
+    ]);
+    return;
+  }
+
+  if (pathname === "/hospital/requests") {
+    await listBloodRequests(accessToken);
+    return;
+  }
+
+  if (pathname === "/hospital/requests/new" || pathname === "/hospital/network") {
+    await getCurrentOrganization(accessToken);
+    return;
+  }
+
+  const hospitalMatchesRoute = pathname.match(/^\/hospital\/requests\/([^/]+)\/matches$/);
+  if (hospitalMatchesRoute?.[1]) {
+    const requestId = hospitalMatchesRoute[1];
+    await Promise.allSettled([
+      getBloodRequest(accessToken, requestId),
+      getBloodRequestCandidates(accessToken, requestId),
+    ]);
+    return;
+  }
+
+  const hospitalDetailRoute = pathname.match(/^\/hospital\/requests\/([^/]+)$/);
+  if (hospitalDetailRoute?.[1]) {
+    await getBloodRequest(accessToken, hospitalDetailRoute[1]);
+    return;
+  }
+
+  if (pathname === "/blood-bank/dashboard") {
+    await Promise.allSettled([
+      getCurrentOrganization(accessToken),
+      listProviderRequests(accessToken),
+      listInventory(accessToken),
+    ]);
+    return;
+  }
+
+  if (pathname === "/blood-bank/requests") {
+    await listProviderRequests(accessToken);
+    return;
+  }
+
+  if (pathname === "/blood-bank/inventory") {
+    await Promise.allSettled([
+      getCurrentOrganization(accessToken),
+      listInventory(accessToken),
+    ]);
+    return;
+  }
+
+  const providerDetailRoute = pathname.match(/^\/blood-bank\/requests\/([^/]+)$/);
+  if (providerDetailRoute?.[1]) {
+    await Promise.allSettled([
+      getProviderRequest(accessToken, providerDetailRoute[1]),
+      listInventory(accessToken),
+    ]);
+    return;
+  }
+
+  await getCurrentUser(accessToken);
+}
+
 export function Wordmark({
   href = "/login",
   variant = "pill",
@@ -120,6 +204,16 @@ export function AppShell({
   const pathname = usePathname();
   const router = useRouter();
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
+  const [isRetrying, startRetryTransition] = useTransition();
+
+  useEffect(() => {
+    const accessToken = getClientAccessToken();
+    if (!accessToken) return;
+    void syncRouteWithBackend(pathname, accessToken).catch(() => {
+      // Non-blocking browser telemetry/read verification; SSR boundary handles errors.
+    });
+  }, [pathname]);
+
   const config = {
     ...roleConfig[role],
     organization: user.organization?.name ?? "HemoGrid Network",
@@ -185,24 +279,26 @@ export function AppShell({
       </header>
 
       {serviceUnavailable && (
-        <div
-          className="mx-auto mt-3 flex w-[calc(100%_-_48px)] max-w-[1540px] items-start gap-3 rounded-2xl border border-warning/30 bg-warning-soft/70 px-4 py-3 text-xs text-slate-700"
-          role="status"
-        >
-          <WifiOff size={17} className="mt-0.5 shrink-0 text-warning" />
-          <div className="min-w-0 flex-1">
-            <strong className="block text-ink">Live service temporarily unavailable</strong>
-            <p className="mt-0.5 leading-relaxed">
-              Navigation remains available, but live data and submissions cannot be verified.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="shrink-0 rounded-lg border border-warning/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink hover:bg-warning-soft"
-            onClick={() => router.refresh()}
-          >
-            Retry connection
-          </button>
+        <div className="mx-auto mt-3 w-[calc(100%_-_48px)] max-w-[1540px]">
+          <FeedbackBanner
+            tone="warning"
+            icon={WifiOff}
+            role="status"
+            title="Live service temporarily unavailable"
+            message="Navigation remains available, but live data and submissions cannot be verified."
+            action={
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                isLoading={isRetrying}
+                loadingText="Retrying…"
+                onClick={() => startRetryTransition(() => router.refresh())}
+              >
+                Retry connection
+              </Button>
+            }
+          />
         </div>
       )}
 

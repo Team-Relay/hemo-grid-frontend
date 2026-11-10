@@ -25,19 +25,30 @@ export type BloodRequestStatus =
   | "EXPIRED";
 
 export type OrganizationType = "HOSPITAL" | "BLOOD_BANK";
+export type FacilityTier = "RBTC" | "SATELLITE" | "HOSPITAL";
 export type FacilityStatus = "ONLINE" | "DEGRADED" | "OFFLINE";
 export type StockHealth = "HEALTHY" | "MODERATE" | "LOW" | "CRITICAL";
+export type MatchCompatibilityType = "EXACT" | "COMPATIBLE_SUBSTITUTE";
+export type ColdChainStatus = "VERIFIED_2_6C" | "EXCURSION_QUARANTINED";
 
 export interface Organization {
   id: string;
+  facilityCode?: string;
+  facilityTier?: FacilityTier;
   name: string;
   type: OrganizationType;
   location: string;
+  county?: string;
   coordinates: { x: number; y: number };
   networkStatus: FacilityStatus;
   lastUpdated: string;
   activeRequests: number;
   totalStock?: number;
+  quarantinedUnits?: number;
+  fridgeTempCelsius?: number;
+  assignedSupplyCentre?: string;
+  recommendedSupplyCentre?: string;
+  savedTransitHours?: number;
 }
 
 export interface InventoryItem {
@@ -48,6 +59,10 @@ export interface InventoryItem {
   availableUnits: number;
   reservedUnits: number;
   lastUpdated: string;
+  quarantinedTempExcursionUnits?: number;
+  fridgeTempCelsius?: number;
+  coldChainStatus?: ColdChainStatus;
+  expiringWithin7DaysUnits?: number;
 }
 
 export interface TimelineEvent {
@@ -74,6 +89,10 @@ export interface BloodRequest {
   updatedAt: string;
   deliveredAt?: string;
   distanceKm?: number;
+  estimatedTransitHours?: number;
+  unknownPatientBloodGroup?: boolean;
+  matchType?: MatchCompatibilityType;
+  coldChainVerified?: boolean;
   clinicalReference?: string;
   notes?: string;
   createdBy?: string;
@@ -82,16 +101,26 @@ export interface BloodRequest {
 
 export interface Candidate {
   organizationId: string;
+  facilityCode?: string;
+  facilityTier?: FacilityTier;
   organizationName: string;
   location?: string;
   bloodGroup: BloodGroup;
+  offeredBloodGroup?: BloodGroup;
   component: BloodComponent;
   unitsFree: number;
   distanceKm?: number;
+  estimatedTransitHours?: number;
   fulfilmentMinutes?: number;
   canFullyFulfil: boolean;
   rank: number;
   coordinates?: { x: number; y: number };
+  matchType?: MatchCompatibilityType;
+  coldChainVerified?: boolean;
+  fridgeTempCelsius?: number;
+  quarantinedUnitsExcluded?: number;
+  conservationRuleApplied?: boolean;
+  recommendationReasons?: string[];
 }
 
 export interface ActivityItem {

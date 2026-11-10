@@ -1,4 +1,4 @@
-/** Accessible interactive visualization for the current local network demonstration dataset. */
+/** Accessible interactive visualization for the Kenya Blood Network dataset. */
 
 "use client";
 
@@ -33,12 +33,13 @@ export function NetworkMap({
           preserveAspectRatio="none"
           aria-hidden="true"
         >
-          <path d="M31 54 C42 42, 49 39, 62 32" />
-          <path d="M31 54 C39 58, 44 66, 49 70" />
-          <path d="M31 54 C48 54, 62 57, 78 61" />
+          <path d="M52 60 C55 54, 58 50, 60 47" />
+          <path d="M52 60 C46 54, 42 52, 33 43" />
+          <path d="M60 47 C68 45, 76 44, 83 44" />
+          <path d="M21 51 C26 52, 30 54, 34 55" />
         </svg>
 
-        {organizations.slice(0, 8).map((organization) => {
+        {organizations.slice(0, 10).map((organization) => {
           const selected = organization.id === selectedFacilityId;
 
           return (
@@ -77,7 +78,7 @@ export function NetworkMap({
         <span className="live-label">
           <i /> Live network
         </span>
-        <span>Abuja FCT</span>
+        <span>National Blood Grid · 47 Connected Facilities</span>
       </div>
 
       <div className="map-zoom">
@@ -115,10 +116,10 @@ export function NetworkMap({
           <MapPin size={12} strokeWidth={1.8} /> Hospital
         </span>
         <span>
-          <i className="legend-bank" /> Blood bank
+          <i className="legend-bank" /> RBTC / Blood bank
         </span>
         <span>
-          <i className="legend-critical" /> Stock alert
+          <i className="legend-critical" /> Cold-chain / Stock alert
         </span>
       </div>
 
@@ -127,7 +128,10 @@ export function NetworkMap({
           <div>
             <span className="pulse-dot" />
             <p>
-              <strong>{selectedFacility.name}</strong>
+              <strong>
+                {selectedFacility.name}
+                {selectedFacility.facilityCode ? ` (${selectedFacility.facilityCode})` : ""}
+              </strong>
               <small>
                 {selectedFacility.location} · {selectedFacility.networkStatus.toLowerCase()}
               </small>

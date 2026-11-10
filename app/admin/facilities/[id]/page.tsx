@@ -1,10 +1,16 @@
-/** Presents the existing administrative facility-detail prototype for product review. */
+/** Presents the administrative facility-detail view for the Kenya Blood Network dataset. */
 
 import { Activity, Boxes, Building2, FileHeart, Hospital, MapPin } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { NetworkMap } from "@/components/network/network-map";
-import { PageHeader, Panel, SectionHeader, StatCard } from "@/components/ui/core";
+import {
+  FeedbackBanner,
+  PageHeader,
+  Panel,
+  SectionHeader,
+  StatCard,
+} from "@/components/ui/core";
 import { organizations } from "@/lib/mock/data";
 
 export function generateStaticParams() {
@@ -19,15 +25,35 @@ export default async function FacilityDetail({ params }: PageProps<"/admin/facil
 
   const isHospital = facility.type === "HOSPITAL";
   const isOnline = facility.networkStatus === "ONLINE";
+  const hasCorridorReassignment =
+    facility.assignedSupplyCentre &&
+    facility.recommendedSupplyCentre &&
+    facility.assignedSupplyCentre !== facility.recommendedSupplyCentre;
 
   return (
     <div className="space-y-6">
       <PageHeader
         backHref="/admin/facilities"
-        eyebrow={isHospital ? "Trauma Hospital" : "Regional Blood Bank"}
+        eyebrow={
+          facility.facilityTier === "RBTC"
+            ? "Regional Blood Transfusion Centre (RBTC)"
+            : facility.facilityTier === "SATELLITE"
+              ? "Satellite Blood Bank"
+              : isHospital
+                ? "Trauma & Referral Hospital"
+                : "Regional Blood Bank"
+        }
         title={facility.name}
-        description={`${facility.location} · Verified HemoGrid network facility record`}
+        description={`${facility.location} · Verified HemoGrid network facility record (${facility.facilityCode ?? facility.id})`}
       />
+
+      {hasCorridorReassignment && (
+        <FeedbackBanner
+          tone="info"
+          title={`Corridor Optimization Recommended: ${facility.assignedSupplyCentre} → ${facility.recommendedSupplyCentre}`}
+          message={`Road-corridor analysis indicates routing emergency shortfalls for ${facility.name} via ${facility.recommendedSupplyCentre} instead of ${facility.assignedSupplyCentre} significantly reduces road transit time.`}
+        />
+      )}
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -52,9 +78,9 @@ export default async function FacilityDetail({ params }: PageProps<"/admin/facil
           tone={facility.totalStock ? "success" : "brand"}
         />
         <StatCard
-          label="Facility type"
-          value={isHospital ? "Hospital" : "Blood bank"}
-          detail="verified partner"
+          label="Facility tier"
+          value={facility.facilityTier ?? (isHospital ? "Hospital" : "Blood bank")}
+          detail={facility.facilityCode ?? "verified partner"}
           icon={isHospital ? Hospital : Building2}
         />
       </div>
@@ -87,16 +113,36 @@ export default async function FacilityDetail({ params }: PageProps<"/admin/facil
 
           <div className="divide-y divide-border text-xs">
             <div className="flex items-center justify-between py-2.5">
-              <span className="text-muted font-medium">Organization ID</span>
-              <strong className="font-semibold text-ink font-mono">{facility.id}</strong>
+              <span className="text-muted font-medium">Facility Code / ID</span>
+              <strong className="font-semibold text-ink tabular-nums">
+                {facility.facilityCode ? `${facility.facilityCode} (${facility.id})` : facility.id}
+              </strong>
             </div>
 
             <div className="flex items-center justify-between py-2.5">
               <span className="text-muted font-medium">Classification</span>
               <strong className="font-semibold text-ink">
-                {isHospital ? "Hospital Trauma Centre" : "Regional Screening Blood Bank"}
+                {facility.facilityTier === "RBTC"
+                  ? "Regional Blood Transfusion Centre"
+                  : facility.facilityTier === "SATELLITE"
+                    ? "Satellite Transfusion Bank"
+                    : isHospital
+                      ? "Hospital Trauma Centre"
+                      : "Regional Screening Blood Bank"}
               </strong>
             </div>
+
+            {facility.assignedSupplyCentre && (
+              <div className="flex items-center justify-between py-2.5">
+                <span className="text-muted font-medium">Assigned RBTC Hub</span>
+                <strong className="font-semibold text-ink">
+                  {facility.assignedSupplyCentre}
+                  {hasCorridorReassignment
+                    ? ` (Recommended: ${facility.recommendedSupplyCentre})`
+                    : ""}
+                </strong>
+              </div>
+            )}
 
             <div className="flex items-center justify-between py-2.5">
               <span className="text-muted font-medium">Live Telemetry</span>
@@ -121,12 +167,14 @@ export default async function FacilityDetail({ params }: PageProps<"/admin/facil
 
             <div className="flex items-center justify-between py-2.5">
               <span className="text-muted font-medium">Active Requests</span>
-              <strong className="font-semibold text-ink">{facility.activeRequests}</strong>
+              <strong className="font-semibold text-ink tabular-nums">
+                {facility.activeRequests}
+              </strong>
             </div>
 
             <div className="flex items-center justify-between py-2.5">
               <span className="text-muted font-medium">Screened Reserves</span>
-              <strong className="font-semibold text-ink">
+              <strong className="font-semibold text-ink tabular-nums">
                 {facility.totalStock ? `${facility.totalStock} units` : "Not applicable"}
               </strong>
             </div>

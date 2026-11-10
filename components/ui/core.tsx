@@ -1,12 +1,23 @@
 /** Design-system primitives shared across role workspaces to keep states visually consistent. */
 
-import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeft, ArrowRight, Inbox, LoaderCircle, RefreshCw } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Inbox,
+  Info,
+  RefreshCw,
+  ShieldCheck,
+  ThermometerSnowflake,
+  X,
+} from "lucide-react";
 import type { BloodGroup, BloodRequestStatus, RequestUrgency, StockHealth } from "@/types/domain";
 import { formatBloodGroup, formatStatus, formatUrgency } from "@/lib/domain";
+import { ActionLink, ButtonLink, LoadingSpinner, PendingLink } from "@/components/ui/pending-link";
 
-export { ButtonLink } from "@/components/ui/pending-link";
+export { ActionLink, ButtonLink, LoadingSpinner, PendingLink };
 
 export function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
@@ -49,19 +60,172 @@ export function Button({
       aria-busy={isLoading || undefined}
       {...props}
     >
-      {isLoading ? (
-        <>
-          <LoaderCircle
-            className="animate-[spin_700ms_linear_infinite] shrink-0"
-            size={15}
-            strokeWidth={1.9}
-          />
-          <span>{loadingText}</span>
-        </>
-      ) : (
-        children
-      )}
+      {isLoading ? <LoadingSpinner size={15} label={loadingText} /> : children}
     </button>
+  );
+}
+
+export type FeedbackTone = "critical" | "warning" | "success" | "info";
+
+export function FeedbackBanner({
+  tone = "critical",
+  title,
+  message,
+  icon: CustomIcon,
+  onDismiss,
+  action,
+  role,
+  className,
+}: {
+  tone?: FeedbackTone;
+  title?: string;
+  message: React.ReactNode;
+  icon?: LucideIcon;
+  onDismiss?: () => void;
+  action?: React.ReactNode;
+  role?: "alert" | "status" | "note";
+  className?: string;
+}) {
+  const toneStyles: Record<
+    FeedbackTone,
+    { container: string; icon: string; DefaultIcon: LucideIcon }
+  > = {
+    critical: {
+      container: "border-critical/25 bg-critical-soft/60 text-slate-700",
+      icon: "text-critical",
+      DefaultIcon: AlertTriangle,
+    },
+    warning: {
+      container: "border-warning/25 bg-warning-soft/70 text-slate-700",
+      icon: "text-warning",
+      DefaultIcon: AlertTriangle,
+    },
+    success: {
+      container: "border-success/30 bg-success-soft text-emerald-800",
+      icon: "text-success",
+      DefaultIcon: CheckCircle2,
+    },
+    info: {
+      container: "border-info/30 bg-info-soft text-slate-800",
+      icon: "text-info",
+      DefaultIcon: Info,
+    },
+  };
+
+  const config = toneStyles[tone];
+  const Icon = CustomIcon ?? config.DefaultIcon;
+  const resolvedRole = role ?? (tone === "critical" ? "alert" : "status");
+
+  return (
+    <div
+      className={cn(
+        "flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-xs",
+        config.container,
+        className,
+      )}
+      role={resolvedRole}
+    >
+      <div className="flex items-start gap-2.5 min-w-0 flex-1">
+        <Icon size={16} className={cn("mt-0.5 shrink-0", config.icon)} />
+        <div className="min-w-0 flex-1">
+          {title ? (
+            <>
+              <strong className="block font-semibold text-ink">{title}</strong>
+              <div className="mt-0.5 leading-relaxed">{message}</div>
+            </>
+          ) : (
+            <span className="font-semibold leading-relaxed block">{message}</span>
+          )}
+        </div>
+      </div>
+
+      {action && <div className="shrink-0 self-center">{action}</div>}
+
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Dismiss notice"
+          className="shrink-0 rounded-lg p-1 text-current opacity-75 hover:opacity-100 transition-opacity"
+        >
+          <X size={15} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function FieldError({
+  id,
+  message,
+  className,
+}: {
+  id?: string;
+  message?: string;
+  className?: string;
+}) {
+  if (!message) return null;
+
+  return (
+    <p
+      id={id}
+      role="alert"
+      className={cn("m-0 mt-1.5 text-[10.5px] font-medium text-critical", className)}
+    >
+      {message}
+    </p>
+  );
+}
+
+export function ColdChainBadge({
+  verified = true,
+  tempCelsius,
+  quarantinedUnits = 0,
+}: {
+  verified?: boolean;
+  tempCelsius?: number;
+  quarantinedUnits?: number;
+}) {
+  if (!verified || quarantinedUnits > 0) {
+    return (
+      <span className="w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap bg-warning-soft text-amber-800 border border-warning/30 leading-none h-fit">
+        <ThermometerSnowflake size={12} className="text-warning shrink-0" />
+        {quarantinedUnits > 0
+          ? `${quarantinedUnits} Excursion Quarantined`
+          : "Excursion Quarantined"}
+      </span>
+    );
+  }
+
+  return (
+    <span className="w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap bg-success-soft text-emerald-800 border border-success/25 leading-none h-fit">
+      <ThermometerSnowflake size={12} className="text-success shrink-0" />
+      2°C–6°C Verified{tempCelsius !== undefined ? ` (${tempCelsius.toFixed(1)}°C)` : ""}
+    </span>
+  );
+}
+
+export function MatchTypeBadge({
+  matchType = "EXACT",
+  offeredGroup,
+}: {
+  matchType?: "EXACT" | "COMPATIBLE_SUBSTITUTE";
+  offeredGroup?: BloodGroup;
+}) {
+  if (matchType === "COMPATIBLE_SUBSTITUTE") {
+    return (
+      <span className="w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap bg-info-soft text-info border border-info/25 leading-none h-fit">
+        <ShieldCheck size={12} className="shrink-0" />
+        ABO/Rh Compatible{offeredGroup ? ` (${formatBloodGroup(offeredGroup)})` : ""}
+      </span>
+    );
+  }
+
+  return (
+    <span className="w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap bg-brand-soft text-brand-dark border border-brand/20 leading-none h-fit">
+      <ShieldCheck size={12} className="text-brand shrink-0" />
+      Exact Group Match
+    </span>
   );
 }
 
@@ -104,12 +268,14 @@ export function PageHeader({
     <div className="flex min-h-[65px] items-end justify-between gap-6 mb-5">
       <div className="flex-1">
         {backHref && (
-          <Link
+          <PendingLink
             href={backHref}
+            pendingLabel="Going back…"
+            spinnerSize={13}
             className="inline-flex items-center gap-[5px] mb-2.5 text-muted text-xs font-semibold hover:text-ink"
           >
             <ArrowLeft size={15} /> Back
-          </Link>
+          </PendingLink>
         )}
         {eyebrow && (
           <p className="m-0 mb-1.5 text-brand text-[11px] font-[720] tracking-[0.09em] uppercase">
@@ -142,30 +308,32 @@ export function StatCard({
   tone?: "brand" | "success" | "warning" | "critical";
 }) {
   const toneMap = {
-    brand: "text-brand",
-    success: "text-success",
-    warning: "text-warning",
-    critical: "text-critical",
+    brand: "text-brand bg-brand-soft/70 border border-brand/15",
+    success: "text-success bg-success-soft border border-success/20",
+    warning: "text-warning bg-warning-soft border border-warning/20",
+    critical: "text-critical bg-critical-soft border border-critical/20",
   };
 
   return (
-    <Panel className="min-w-0 min-h-[112px] p-[17px] relative rounded-card" padding={false}>
-      <div
-        className={cn(
-          "w-[34px] h-[34px] grid place-items-center absolute right-[15px] top-[15px] rounded-full border-none bg-surface-muted",
-          toneMap[tone],
-        )}
-      >
-        <Icon size={17} strokeWidth={1.8} />
+    <Panel className="min-w-0 p-3.5 sm:p-4 rounded-xl flex flex-col justify-between bg-white border border-border shadow-xs" padding={false}>
+      <div className="flex items-start justify-between gap-2">
+        <p className="m-0 text-slate-500 text-xs font-medium leading-tight">
+          {label}
+        </p>
+        <div
+          className={cn(
+            "w-7 h-7 grid place-items-center rounded-lg shrink-0",
+            toneMap[tone],
+          )}
+        >
+          <Icon size={14} strokeWidth={2} />
+        </div>
       </div>
-      <p className="max-w-[calc(100%-34px)] min-h-[29px] m-0 text-muted text-[11.5px] leading-[1.35] font-semibold">
-        {label}
-      </p>
-      <div className="flex items-end gap-2 mt-3">
-        <strong className="text-[34px] leading-none font-medium tracking-[-0.04em] tabular-nums">
+      <div className="mt-2">
+        <strong className="text-xl sm:text-2xl font-bold tracking-tight text-ink tabular-nums block">
           {value}
         </strong>
-        <span>{detail}</span>
+        <p className="mt-0.5 text-[11px] text-slate-400 truncate">{detail}</p>
       </div>
     </Panel>
   );
@@ -295,10 +463,12 @@ export function ErrorState({
   title = "We couldn't load this view",
   description = "Check your connection and try again.",
   onRetry,
+  isRetrying = false,
 }: {
   title?: string;
   description?: string;
   onRetry?: () => void;
+  isRetrying?: boolean;
 } = {}) {
   return (
     <div className="min-h-[220px] flex flex-col items-center justify-center p-8 border border-dashed border-critical/30 rounded-[18px] text-center bg-critical-soft/50">
@@ -308,7 +478,13 @@ export function ErrorState({
       <h3 className="m-0 mb-1.5 text-ink text-sm font-semibold tracking-[-0.01em]">{title}</h3>
       <p className="max-w-[320px] m-0 mb-5 text-muted text-xs leading-[1.55]">{description}</p>
       {onRetry && (
-        <Button variant="secondary" size="sm" onClick={onRetry}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onRetry}
+          isLoading={isRetrying}
+          loadingText="Retrying…"
+        >
           Try again
         </Button>
       )}

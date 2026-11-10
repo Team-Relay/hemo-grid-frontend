@@ -1,8 +1,5 @@
 /**
- * Server-only access-token cookie management.
- *
- * Spring Boot remains responsible for issuing and validating the JWT. Next.js
- * only stores it in an HttpOnly cookie and forwards it to the backend.
+ * Access-token cookie management shared between Next.js SSR and browser API requests.
  */
 
 import "server-only";
@@ -19,7 +16,7 @@ export async function createSession(
   const cookieStore = await cookies();
 
   cookieStore.set(ACCESS_TOKEN_COOKIE, loginResponse.accessToken, {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",

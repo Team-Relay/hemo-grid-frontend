@@ -1,11 +1,24 @@
-/** Multi-step hospital request form with shared validation and pending/error feedback. */
+/** Multi-step hospital request form backed directly by the Spring Boot API. */
 
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Check, Minus, Plus, Search, ShieldAlert } from "lucide-react";
-import { createBloodRequestAction } from "@/app/actions/blood-requests";
+import { z } from "zod";
+
+import { revalidateHospitalRequestsAction } from "@/app/actions/blood-requests";
+import {
+  Button,
+  cn,
+  FeedbackBanner,
+  FieldError,
+  PageHeader,
+  Panel,
+} from "@/components/ui/core";
+import { createBloodRequest } from "@/lib/api/blood-requests";
+import { ApiClientError } from "@/lib/api/errors";
+import { clearClientSessionCookie, getClientAccessToken } from "@/lib/auth/client-session";
 import {
   bloodComponents,
   bloodGroups,
@@ -13,11 +26,35 @@ import {
   formatComponent,
   formatUrgency,
 } from "@/lib/domain";
+import {
+  initialRequestFormState,
+  type RequestFormActionState,
+} from "@/lib/requests/action-state";
+import { createBloodRequestSchema } from "@/lib/validation/blood-request";
 import type { BloodComponent, BloodGroup, RequestUrgency } from "@/types/domain";
-import { Button, cn, PageHeader, Panel } from "@/components/ui/core";
-import { initialRequestFormState } from "@/lib/requests/action-state";
 
 const urgencies: RequestUrgency[] = ["ROUTINE", "URGENT", "CRITICAL"];
+const UNKNOWN_PROTOCOL_PREFIX = "[EMERGENCY UNKNOWN BLOOD GROUP — UNIVERSAL O− PROTOCOL]";
+
+function isRequestField(
+  field: string,
+): field is keyof NonNullable<RequestFormActionState["fieldErrors"]> {
+  return [
+    "bloodGroup",
+    "component",
+    "unitsRequired",
+    "urgency",
+    "clinicalReference",
+    "notes",
+  ].includes(field);
+}
+
+function requestErrorMessage(error: ApiClientError): string {
+  if (error.status === 403) return "Your account cannot perform this hospital action.";
+  if (error.status === 404) return "This request or provider is no longer available.";
+  if (error.status === 409) return error.message;
+  return error.message;
+}
 
 export function RequestForm() {
   const router = useRouter();
@@ -25,13 +62,88 @@ export function RequestForm() {
   const [component, setComponent] = useState<BloodComponent>("RED_CELLS");
   const [units, setUnits] = useState(3);
   const [urgency, setUrgency] = useState<RequestUrgency>("CRITICAL");
+  const [unknownBloodGroup, setUnknownBloodGroup] = useState(false);
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [leaving, setLeaving] = useState(false);
-  const [state, formAction, isPending] = useActionState(
-    createBloodRequestAction,
-    initialRequestFormState,
-  );
+  const [state, setState] = useState<RequestFormActionState>(initialRequestFormState);
+  const [isPending, setIsPending] = useState(false);
+
+  function toggleUnknownProtocol(enabled: boolean) {
+    setUnknownBloodGroup(enabled);
+    if (enabled) {
+      setGroup("O_NEGATIVE");
+      setComponent("RED_CELLS");
+      setUrgency("CRITICAL");
+    }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending || leaving) return;
+
+    const effectiveNotes =
+      unknownBloodGroup && !notes.includes(UNKNOWN_PROTOCOL_PREFIX)
+        ? `${UNKNOWN_PROTOCOL_PREFIX} ${notes}`.trim()
+        : notes;
+
+    const validated = createBloodRequestSchema.safeParse({
+      bloodGroup: group,
+      component,
+      unitsRequired: units,
+      urgency,
+      clinicalReference: reference,
+      notes: effectiveNotes,
+    });
+
+    if (!validated.success) {
+      const fields = z.flattenError(validated.error).fieldErrors;
+      setState({
+        message: "Check the highlighted request details and try again.",
+        fieldErrors: fields,
+      });
+      return;
+    }
+
+    const accessToken = getClientAccessToken();
+    if (!accessToken) {
+      router.replace("/login?reason=session-expired");
+      return;
+    }
+
+    setIsPending(true);
+    setState(initialRequestFormState);
+
+    try {
+      const created = await createBloodRequest(accessToken, validated.data);
+      await revalidateHospitalRequestsAction(created.id);
+      router.push(`/hospital/requests/${created.id}/matches`);
+    } catch (error) {
+      setIsPending(false);
+      if (error instanceof ApiClientError) {
+        if (error.status === 401) {
+          clearClientSessionCookie();
+          router.replace("/login?reason=session-expired");
+          return;
+        }
+        const fieldErrors: NonNullable<RequestFormActionState["fieldErrors"]> = {};
+        for (const fieldError of error.fieldErrors) {
+          if (isRequestField(fieldError.field)) {
+            fieldErrors[fieldError.field] = [
+              ...(fieldErrors[fieldError.field] ?? []),
+              fieldError.message,
+            ];
+          }
+        }
+        setState({ message: requestErrorMessage(error), fieldErrors });
+        return;
+      }
+
+      setState({
+        message: "HemoGrid could not reach the server. Check your connection and try again.",
+      });
+    }
+  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -39,10 +151,10 @@ export function RequestForm() {
         backHref="/hospital/requests"
         eyebrow="Emergency Fulfilment"
         title="Create blood request"
-        description="Enter the exact blood group and component required. HemoGrid will instantly calculate matching network inventory and travel distance."
+        description="Enter the exact blood group and component required. HemoGrid evaluates ABO/Rh compatibility, Universal O− conservation rules, cold-chain integrity, and road-corridor transit ETA."
       />
 
-      <form action={formAction} className="space-y-6" noValidate>
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         <input type="hidden" name="bloodGroup" value={group} />
         <input type="hidden" name="component" value={component} />
         <input type="hidden" name="unitsRequired" value={units} />
@@ -50,13 +162,43 @@ export function RequestForm() {
         <Panel className="p-6 sm:p-8 space-y-8 shadow-sm">
           {/* Section 1: Blood Group Selection */}
           <div className="space-y-4">
-            <div>
-              <h2 className="text-base font-bold text-ink tracking-tight">1. Target Blood Group</h2>
-              <p className="text-xs text-muted mt-0.5">
-                Select the exact group requested. Cross-match compatibility protocols will search
-                exact screened units.
-              </p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-bold text-ink tracking-tight">
+                  1. Target Blood Group
+                </h2>
+                <p className="text-xs text-muted mt-0.5">
+                  Select the exact patient group or activate the Emergency Unknown Blood Group
+                  trauma protocol.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => toggleUnknownProtocol(!unknownBloodGroup)}
+                disabled={isPending || leaving}
+                aria-pressed={unknownBloodGroup}
+                className={cn(
+                  "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all",
+                  unknownBloodGroup
+                    ? "bg-amber-600 text-white border-amber-600 shadow-sm"
+                    : "bg-surface-muted border-border text-slate-700 hover:bg-white hover:border-border-strong",
+                )}
+              >
+                <ShieldAlert size={14} />
+                {unknownBloodGroup
+                  ? "Universal O− Trauma Protocol Active"
+                  : "Patient blood group unknown (Trauma O−)"}
+              </button>
             </div>
+
+            {unknownBloodGroup && (
+              <FeedbackBanner
+                tone="warning"
+                title="Emergency Unknown Blood Group — Universal O− Protocol"
+                message="Unidentified trauma & obstetric hemorrhage protocol activated: HemoGrid locks O− Red Cells with CRITICAL dispatch priority and restricts candidate ranking to cold-chain verified O− reserves."
+              />
+            )}
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {bloodGroups.map((value) => {
@@ -66,7 +208,12 @@ export function RequestForm() {
                   <button
                     key={value}
                     type="button"
-                    onClick={() => setGroup(value)}
+                    onClick={() => {
+                      if (unknownBloodGroup && value !== "O_NEGATIVE") {
+                        setUnknownBloodGroup(false);
+                      }
+                      setGroup(value);
+                    }}
                     disabled={isPending || leaving}
                     className={cn(
                       "p-3.5 rounded-2xl border text-left transition-all duration-150 relative flex items-center justify-between",
@@ -103,7 +250,8 @@ export function RequestForm() {
                 2. Component Requirement
               </h2>
               <p className="text-xs text-muted mt-0.5">
-                Inventory matching uses the exact selected component preparation.
+                Inventory matching uses the exact selected component preparation and cold-chain
+                storage profile.
               </p>
             </div>
 
@@ -193,11 +341,7 @@ export function RequestForm() {
                   </div>
                   <span className="text-xs text-muted">Minimum 1 unit</span>
                 </div>
-                {state.fieldErrors?.unitsRequired?.[0] && (
-                  <p className="mt-2 text-[10.5px] text-critical" role="alert">
-                    {state.fieldErrors.unitsRequired[0]}
-                  </p>
-                )}
+                <FieldError message={state.fieldErrors?.unitsRequired?.[0]} />
               </div>
 
               {/* Urgency Choices */}
@@ -270,11 +414,7 @@ export function RequestForm() {
                   placeholder="e.g. ER-88219"
                   className="w-full h-11 px-4 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
                 />
-                {state.fieldErrors?.clinicalReference?.[0] && (
-                  <p className="mt-1 text-[10.5px] text-critical" role="alert">
-                    {state.fieldErrors.clinicalReference[0]}
-                  </p>
-                )}
+                <FieldError message={state.fieldErrors?.clinicalReference?.[0]} />
               </div>
 
               <div>
@@ -299,11 +439,7 @@ export function RequestForm() {
                 <span className="text-[10.5px] text-muted block text-right mt-1">
                   {notes.length}/2,000 characters
                 </span>
-                {state.fieldErrors?.notes?.[0] && (
-                  <p className="mt-1 text-[10.5px] text-critical" role="alert">
-                    {state.fieldErrors.notes[0]}
-                  </p>
-                )}
+                <FieldError message={state.fieldErrors?.notes?.[0]} />
               </div>
             </div>
           </div>
@@ -322,18 +458,18 @@ export function RequestForm() {
                 </strong>{" "}
                 of <strong>{formatBloodGroup(group)}</strong> ({formatComponent(component)}) with{" "}
                 <strong>{formatUrgency(urgency)}</strong> dispatch status. Real-time corridor
-                routing will evaluate currently eligible blood banks for immediate supply.
+                routing will evaluate currently eligible blood banks, cold-chain telemetry, and
+                Universal O− conservation rules.
               </p>
             </div>
           </div>
 
           {state.message && (
-            <div
-              className="rounded-xl border border-critical/25 bg-critical-soft px-4 py-3 text-[11.5px] text-critical"
-              role="alert"
-            >
-              {state.message}
-            </div>
+            <FeedbackBanner
+              tone="critical"
+              title="Unable to create request"
+              message={state.message}
+            />
           )}
 
           {/* Footer Actions */}

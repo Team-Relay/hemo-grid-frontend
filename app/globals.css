@@ -3,27 +3,27 @@
 @import "tailwindcss";
 
 :root {
-  --canvas: #f1f4f3;
+  --canvas: #f6f8f7;
   --surface: #ffffff;
   --surface-muted: #f8faf9;
-  --ink: #15171a;
-  --muted: #667085;
-  --muted-2: #95a09e;
-  --border: #e3e7e5;
-  --border-strong: #cbd6d2;
-  --brand: #6c5ce7;
-  --brand-dark: #5142d1;
-  --brand-soft: #f0eeff;
-  --success: #12b76a;
-  --success-soft: #e7f8ef;
-  --warning: #f79009;
-  --warning-soft: #fef4e6;
-  --critical: #d92d20;
-  --critical-soft: #fceceb;
-  --info: #2e90fa;
-  --info-soft: #ebf4ff;
-  --radius-panel: 24px;
-  --radius-card: 16px;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --muted-2: #94a3b8;
+  --border: #e2e8e5;
+  --border-strong: #cbd5e1;
+  --brand: #4338ca;
+  --brand-dark: #3730a3;
+  --brand-soft: #eef2ff;
+  --success: #059669;
+  --success-soft: #ecfdf5;
+  --warning: #d97706;
+  --warning-soft: #fffbeb;
+  --critical: #dc2626;
+  --critical-soft: #fef2f2;
+  --info: #2563eb;
+  --info-soft: #eff6ff;
+  --radius-panel: 14px;
+  --radius-card: 10px;
 }
 @theme {
   --color-white: #ffffff;
@@ -32,8 +32,8 @@
   --color-current: currentColor;
   --color-background: var(--canvas);
   --color-foreground: var(--ink);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
@@ -68,7 +68,7 @@
     margin: 0;
     background: var(--canvas);
     color: var(--ink);
-    font-family: var(--font-geist-sans), Arial, sans-serif;
+    font-family: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 14px;
   }
   button,
@@ -175,7 +175,7 @@
   background: var(--brand);
   font-size: 12.5px;
   font-weight: 650;
-  box-shadow: 0 2px 8px rgba(91, 92, 226, 0.18);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.18);
   transition: 180ms ease;
   white-space: nowrap;
 }
@@ -833,40 +833,18 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-color: #f6f9fc;
+  background-color: #f8fafc;
   background-image:
-    linear-gradient(
-      32deg,
-      transparent 45%,
-      rgba(164, 184, 210, 0.34) 46%,
-      rgba(164, 184, 210, 0.34) 48%,
-      transparent 49%
-    ),
-    linear-gradient(
-      112deg,
-      transparent 38%,
-      rgba(255, 255, 255, 0.92) 39%,
-      rgba(255, 255, 255, 0.92) 41%,
-      transparent 42%
-    ),
-    radial-gradient(circle at 19% 29%, #e4ecf3 0 3%, transparent 3.2%),
-    radial-gradient(circle at 75% 64%, #e4ecf3 0 6%, transparent 6.2%);
-  background-size:
-    170px 120px,
-    230px 190px,
-    100% 100%,
-    100% 100%;
+    linear-gradient(to right, rgba(226, 232, 240, 0.7) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.7) 1px, transparent 1px);
+  background-size: 36px 36px;
 }
 .map-grid:after {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.4;
-  background-image:
-    linear-gradient(90deg, rgba(164, 184, 210, 0.35) 1px, transparent 1px),
-    linear-gradient(rgba(164, 184, 210, 0.35) 1px, transparent 1px);
-  background-size: 54px 54px;
-  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+  background: radial-gradient(circle at center, transparent 40%, rgba(248, 250, 252, 0.75) 100%);
+  pointer-events: none;
 }
 .map-routes {
   position: absolute;
@@ -921,24 +899,28 @@
   width: 38px;
   height: 38px;
   box-shadow:
-    0 0 0 8px rgba(91, 92, 226, 0.13),
+    0 0 0 8px rgba(67, 56, 202, 0.14),
     0 4px 12px rgba(30, 50, 44, 0.2);
 }
 .marker-label {
   width: max-content;
-  max-width: 160px;
+  max-width: 240px;
   position: absolute;
   left: 50%;
-  top: 38px;
+  bottom: calc(100% + 10px);
+  top: auto;
   transform: translateX(-50%);
-  padding: 6px 9px;
-  border-radius: 7px;
+  padding: 5px 10px;
+  border-radius: 8px;
   color: var(--ink);
   background: white;
-  box-shadow: 0 2px 8px rgba(23, 32, 30, 0.12);
-  font-size: 10px;
-  font-weight: 650;
-  text-align: center;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 30;
 }
 .map-topbar {
   display: flex;
@@ -1386,7 +1368,7 @@
   color: var(--brand-dark);
   border-color: #aeb0f4;
   background: var(--brand-soft);
-  box-shadow: 0 0 0 2px rgba(91, 92, 226, 0.08);
+  box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.08);
 }
 .choice-card strong {
   display: block;
@@ -1983,11 +1965,11 @@
   position: absolute;
   right: -280px;
   top: -270px;
-  border: 1px solid rgba(91, 92, 226, 0.12);
+  border: 1px solid rgba(67, 56, 202, 0.12);
   border-radius: 50%;
   box-shadow:
-    0 0 0 86px rgba(91, 92, 226, 0.025),
-    0 0 0 172px rgba(91, 92, 226, 0.018);
+    0 0 0 86px rgba(67, 56, 202, 0.025),
+    0 0 0 172px rgba(67, 56, 202, 0.018);
 }
 .login-story-top {
   display: flex;
@@ -2429,7 +2411,7 @@
   font-weight: 650;
 }
 .urgency-choice.active {
-  box-shadow: 0 0 0 2px rgba(91, 92, 226, 0.07);
+  box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.07);
 }
 .urgency-option-routine.active {
   color: var(--ink);

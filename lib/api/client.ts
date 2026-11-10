@@ -1,29 +1,22 @@
 /**
- * Server-only HTTP boundary for the Spring Boot API.
- *
- * Keeping bearer-token attachment and response parsing here prevents secrets
- * and transport details from leaking into React components.
+ * Shared HTTP boundary for the Spring Boot API (callable from both browser and server).
  */
-
-import "server-only";
 
 import { ApiClientError, toApiClientError } from "@/lib/api/errors";
 
 const LOCAL_API_URL = "http://localhost:8080/api/v1";
 const DEFAULT_TIMEOUT_MS = 10_000;
 
-function getApiBaseUrl(): string {
-  const configuredUrl = process.env.HEMOGRID_API_URL?.trim();
+export function getApiBaseUrl(): string {
+  const configuredUrl =
+    process.env.NEXT_PUBLIC_HEMOGRID_API_URL?.trim() ||
+    process.env.HEMOGRID_API_URL?.trim();
 
   if (configuredUrl) {
-    return configuredUrl.replace(/\/$/, "");
+    return configuredUrl.replace(/\/+$/, "");
   }
 
-  if (process.env.NODE_ENV !== "production") {
-    return LOCAL_API_URL;
-  }
-
-  throw new Error("HEMOGRID_API_URL must be configured in production.");
+  return LOCAL_API_URL;
 }
 
 export interface ApiRequestOptions extends Omit<RequestInit, "headers"> {

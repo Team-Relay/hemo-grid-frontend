@@ -1,8 +1,8 @@
 /** Live inventory route for the authenticated blood-bank organization. */
 
-import { Boxes } from "lucide-react";
-import { ButtonLink, PageHeader } from "@/components/ui/core";
+import { PageHeader } from "@/components/ui/core";
 import { InventoryTable } from "@/features/inventory/inventory-table";
+import { UpdateInventoryHeaderButton } from "@/features/inventory/update-inventory-header-button";
 import { getProviderInventoryData } from "@/lib/data/provider";
 
 export default async function InventoryPage() {
@@ -14,12 +14,7 @@ export default async function InventoryPage() {
         eyebrow={organization.name}
         title="Inventory"
         description="Manage screened blood stock, reservations and free availability."
-        action={
-          <ButtonLink href="#inventory-table">
-            <Boxes size={15} />
-            Update inventory
-          </ButtonLink>
-        }
+        action={<UpdateInventoryHeaderButton />}
       />
       <InventoryTable items={inventory} />
     </>

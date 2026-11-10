@@ -1,7 +1,6 @@
 /**
  * Authentication Server Actions used by the login form and profile menu.
- * Expected credential errors are returned as state; successful authentication
- * writes the HttpOnly session before redirecting to the correct workspace.
+ * Also provides session cookie sync for direct browser-to-Spring-Boot login.
  */
 
 "use server";
@@ -10,6 +9,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { login } from "@/lib/api/auth";
+import type { BackendLoginResponse } from "@/lib/api/backend-types";
 import { ApiClientError } from "@/lib/api/errors";
 import { workspacePathForRole } from "@/lib/auth/roles";
 import { createSession, deleteSession } from "@/lib/auth/session";
@@ -20,6 +20,13 @@ const loginSchema = z.object({
   password: z.string().min(1, "Enter your password."),
   remember: z.boolean(),
 });
+
+export async function syncSessionCookieAction(
+  loginResponse: BackendLoginResponse,
+  remember: boolean,
+): Promise<void> {
+  await createSession(loginResponse, remember);
+}
 
 export async function loginAction(
   _previousState: LoginActionState,

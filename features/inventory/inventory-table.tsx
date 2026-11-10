@@ -1,19 +1,27 @@
-/** Filterable inventory table with a server-backed available-unit editor. */
+/** Filterable inventory table with a direct browser-to-Spring-Boot available-unit editor. */
 
 "use client";
 
-import { useActionState, useCallback, useMemo, useState } from "react";
-import { CheckCircle2, Edit3, Search, X } from "lucide-react";
+import { useCallback, useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { Edit3, Search, X } from "lucide-react";
+import { z } from "zod";
 
-import { updateInventoryAction } from "@/app/actions/provider";
+import { revalidateProviderDataAction } from "@/app/actions/provider";
 import {
   BloodBadge,
   Button,
+  ColdChainBadge,
   EmptyState,
+  FeedbackBanner,
+  FieldError,
   Pagination,
   StockBadge,
   TableShell,
 } from "@/components/ui/core";
+import { ApiClientError } from "@/lib/api/errors";
+import { updateInventoryUnits } from "@/lib/api/inventory";
+import { clearClientSessionCookie, getClientAccessToken } from "@/lib/auth/client-session";
 import {
   bloodComponents,
   bloodGroups,
@@ -22,11 +30,16 @@ import {
   getFreeUnits,
   getStockHealth,
 } from "@/lib/domain";
-import { initialInventoryActionState } from "@/lib/requests/provider-action-state";
+import {
+  initialInventoryActionState,
+  type InventoryActionState,
+} from "@/lib/requests/provider-action-state";
 import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { inventoryUpdateSchema } from "@/lib/validation/provider";
 import type { BloodComponent, BloodGroup, InventoryItem, StockHealth } from "@/types/domain";
 
 export function InventoryTable({ items }: { items: InventoryItem[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<"ALL" | BloodGroup>("ALL");
   const [component, setComponent] = useState<"ALL" | BloodComponent>("ALL");
@@ -34,10 +47,8 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
   const [editing, setEditing] = useState<InventoryItem | null>(null);
   const [available, setAvailable] = useState(0);
   const [dismissedCompletion, setDismissedCompletion] = useState<number>();
-  const [state, formAction, isPending] = useActionState(
-    updateInventoryAction,
-    initialInventoryActionState,
-  );
+  const [state, setState] = useState<InventoryActionState>(initialInventoryActionState);
+  const [isPending, setIsPending] = useState(false);
 
   const closeDialog = useCallback(() => setEditing(null), []);
   const dialogRef = useDialogFocus<HTMLFormElement>(Boolean(editing), closeDialog);
@@ -61,8 +72,9 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
       available: summary.available + item.availableUnits,
       reserved: summary.reserved + item.reservedUnits,
       free: summary.free + getFreeUnits(item),
+      quarantined: summary.quarantined + (item.quarantinedTempExcursionUnits ?? 0),
     }),
-    { available: 0, reserved: 0, free: 0 },
+    { available: 0, reserved: 0, free: 0, quarantined: 0 },
   );
   const alertCount = items.filter((item) =>
     ["LOW", "CRITICAL"].includes(getStockHealth(getFreeUnits(item))),
@@ -79,27 +91,93 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
     setAvailable(item.availableUnits);
   }
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending || !editing) return;
+
+    const validated = inventoryUpdateSchema.safeParse({
+      inventoryId: editing.id,
+      unitsAvailable: available,
+    });
+
+    if (!validated.success) {
+      setState({
+        message: "Check the available-unit quantity and try again.",
+        fieldErrors: z.flattenError(validated.error).fieldErrors,
+        completedAt: Date.now(),
+      });
+      return;
+    }
+
+    const accessToken = getClientAccessToken();
+    if (!accessToken) {
+      router.replace("/login?reason=session-expired");
+      return;
+    }
+
+    setIsPending(true);
+
+    try {
+      await updateInventoryUnits(
+        accessToken,
+        validated.data.inventoryId,
+        validated.data.unitsAvailable,
+      );
+      await revalidateProviderDataAction();
+      setIsPending(false);
+      setState({
+        successMessage: "Inventory updated successfully.",
+        completedAt: Date.now(),
+      });
+      closeDialog();
+      router.refresh();
+    } catch (error) {
+      setIsPending(false);
+      if (error instanceof ApiClientError) {
+        if (error.status === 401) {
+          clearClientSessionCookie();
+          router.replace("/login?reason=session-expired");
+          return;
+        }
+        if (error.status === 403) {
+          setState({
+            message: "Your account cannot perform this blood-bank action.",
+            fieldErrors: {},
+            completedAt: Date.now(),
+          });
+          return;
+        }
+        if (error.status === 404) {
+          setState({
+            message: "This request or inventory row is no longer available.",
+            fieldErrors: {},
+            completedAt: Date.now(),
+          });
+          return;
+        }
+        setState({ message: error.message, fieldErrors: {}, completedAt: Date.now() });
+        return;
+      }
+
+      setState({
+        message: "HemoGrid could not reach the server. Check your connection and try again.",
+        fieldErrors: {},
+        completedAt: Date.now(),
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {successVisible && (
-        <div
-          className="p-4 rounded-2xl bg-success-soft border border-success/30 flex items-center justify-between gap-3 text-xs text-emerald-800"
-          role="status"
-        >
-          <span className="inline-flex items-center gap-2 font-semibold">
-            <CheckCircle2 size={16} /> {state.successMessage}
-          </span>
-          <button
-            type="button"
-            onClick={() => setDismissedCompletion(state.completedAt)}
-            aria-label="Dismiss notice"
-          >
-            <X size={15} />
-          </button>
-        </div>
+      {successVisible && state.successMessage && (
+        <FeedbackBanner
+          tone="success"
+          message={state.successMessage}
+          onDismiss={() => setDismissedCompletion(state.completedAt)}
+        />
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
         <InventoryMetric
           label="Total screened available"
           value={totals.available}
@@ -116,6 +194,12 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
           value={totals.free}
           detail="ready for dispatch"
           tone="text-emerald-600"
+        />
+        <InventoryMetric
+          label="Quarantined (>6°C)"
+          value={totals.quarantined}
+          detail="blocked from dispatch"
+          tone="text-slate-700"
         />
         <InventoryMetric
           label="Critical stock deficits"
@@ -205,6 +289,7 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
                   <th className="py-3 px-4">Available</th>
                   <th className="py-3 px-4">Reserved</th>
                   <th className="py-3 px-4">Free Available</th>
+                  <th className="py-3 px-4">Cold-Chain &amp; Safety</th>
                   <th className="py-3 px-4">Stock Status</th>
                   <th className="py-3 px-4">Last Sync</th>
                   <th className="py-3 px-4 text-right">Actions</th>
@@ -236,6 +321,13 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
                         {free} units
                       </td>
                       <td className="py-3.5 px-4">
+                        <ColdChainBadge
+                          verified={item.coldChainStatus !== "EXCURSION_QUARANTINED"}
+                          tempCelsius={item.fridgeTempCelsius}
+                          quarantinedUnits={item.quarantinedTempExcursionUnits}
+                        />
+                      </td>
+                      <td className="py-3.5 px-4">
                         <StockBadge health={getStockHealth(free)} />
                       </td>
                       <td className="py-3.5 px-4 text-muted text-[11.5px]">{item.lastUpdated}</td>
@@ -263,7 +355,7 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
           }}
         >
           <form
-            action={formAction}
+            onSubmit={handleSubmit}
             ref={dialogRef}
             className="w-full max-w-md bg-white border border-border rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5"
             role="dialog"
@@ -338,17 +430,10 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
               Reserved units are lifecycle-controlled and cannot be edited manually.
             </p>
             {dialogResultApplies && state.fieldErrors?.unitsAvailable?.[0] && (
-              <p className="text-[11px] text-critical" role="alert">
-                {state.fieldErrors.unitsAvailable[0]}
-              </p>
+              <FieldError message={state.fieldErrors.unitsAvailable[0]} />
             )}
             {dialogResultApplies && state.message && (
-              <p
-                className="rounded-xl border border-critical/25 bg-critical-soft px-3 py-2 text-[11px] text-critical"
-                role="alert"
-              >
-                {state.message}
-              </p>
+              <FeedbackBanner tone="critical" message={state.message} />
             )}
 
             <div className="p-3.5 rounded-xl bg-surface-muted border border-border flex items-center justify-between text-xs">

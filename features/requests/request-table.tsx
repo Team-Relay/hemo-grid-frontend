@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, ArrowUpDown, Search } from "lucide-react";
 import {
+  ActionLink,
   BloodBadge,
   ButtonLink,
   EmptyState,
@@ -188,7 +189,11 @@ export function RequestTable({
                       </strong>
                       <span className="text-[11px] text-muted block mt-0.5">
                         {request.providerName
-                          ? `${request.distanceKm} km transit`
+                          ? request.estimatedTransitHours
+                            ? `${request.estimatedTransitHours}h transit ETA`
+                            : request.distanceKm
+                              ? `${request.distanceKm} km transit`
+                              : "Verified dispatch corridor"
                           : "Searching network…"}
                       </span>
                     </td>
@@ -199,12 +204,9 @@ export function RequestTable({
                   </td>
 
                   <td className="py-3.5 px-4 text-right">
-                    <Link
-                      href={`${base}/${request.id}`}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors"
-                    >
+                    <ActionLink href={`${base}/${request.id}`} pendingLabel="Opening…">
                       View <ArrowRight size={13} />
-                    </Link>
+                    </ActionLink>
                   </td>
                 </tr>
               ))}

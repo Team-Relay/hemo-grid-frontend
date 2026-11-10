@@ -13,6 +13,7 @@ import {
 
 import { NetworkMap } from "@/components/network/network-map";
 import {
+  ActionLink,
   BloodBadge,
   ButtonLink,
   EmptyState,
@@ -109,12 +110,13 @@ export default async function HospitalDashboard() {
               title="Requires attention"
               description="Operational exceptions across your active requests"
               action={
-                <Link
+                <ActionLink
                   href="/hospital/requests"
-                  className="inline-flex items-center gap-[5px] text-brand text-[11px] font-[650]"
+                  pendingLabel="Opening…"
+                  className="text-[11px] font-[650]"
                 >
                   View requests <ArrowRight size={13} />
-                </Link>
+                </ActionLink>
               }
             />
             {attentionRequests.length > 0 ? (

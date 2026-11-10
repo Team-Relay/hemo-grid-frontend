@@ -1,6 +1,4 @@
-/** Typed server-only client for authenticated blood-bank inventory operations. */
-
-import "server-only";
+/** Typed client for authenticated blood-bank inventory operations. */
 
 import type { BackendInventoryItem } from "@/lib/api/backend-types";
 import { apiRequest } from "@/lib/api/client";

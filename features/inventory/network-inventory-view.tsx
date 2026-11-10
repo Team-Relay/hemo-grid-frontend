@@ -1,11 +1,16 @@
-/** Administrative network-stock prototype; it is not used for provider inventory mutations. */
+/** Administrative network-stock view backed by the Terumo BCT Kenya Blood Network dataset. */
 
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, ArrowRight, Building2 } from "lucide-react";
-import Link from "next/link";
-import { BloodBadge, Panel, StockBadge, TableShell } from "@/components/ui/core";
+import { ArrowRight, Building2 } from "lucide-react";
+import {
+  ActionLink,
+  ColdChainBadge,
+  FeedbackBanner,
+  StockBadge,
+  TableShell,
+} from "@/components/ui/core";
 import { bloodGroups, formatBloodGroup, getStockHealth } from "@/lib/domain";
 import type { BloodComponent } from "@/types/domain";
 
@@ -14,39 +19,55 @@ const networkStock = [256, 31, 211, 63, 168, 47, 92, 14];
 const facilityStock = [
   {
     id: "bank-1",
-    name: "Maitama Blood Centre",
-    location: "Maitama, Abuja",
+    code: "RBTC-NBO",
+    name: "Nairobi RBTC",
+    location: "Nairobi, Nairobi County",
     group: "O−",
     component: "RED_CELLS" as const,
-    available: 8,
-    reserved: 3,
+    available: 16,
+    reserved: 4,
+    quarantined: 0,
+    tempCelsius: 3.7,
+    coldChainVerified: true,
   },
   {
     id: "bank-5",
-    name: "National Transfusion Hub",
-    location: "Central Area, Abuja",
+    code: "RBTC-ELD",
+    name: "Eldoret RBTC",
+    location: "Eldoret, Uasin Gishu County",
     group: "O+",
     component: "WHOLE_BLOOD" as const,
     available: 42,
     reserved: 7,
+    quarantined: 0,
+    tempCelsius: 4.0,
+    coldChainVerified: true,
   },
   {
     id: "bank-2",
-    name: "Garki Regional Blood Bank",
-    location: "Garki, Abuja",
+    code: "RBTC-EMB",
+    name: "Embu RBTC",
+    location: "Embu, Embu County",
     group: "A+",
     component: "PLATELETS" as const,
     available: 31,
     reserved: 4,
+    quarantined: 0,
+    tempCelsius: 4.1,
+    coldChainVerified: true,
   },
   {
     id: "bank-4",
-    name: "Unity Blood Services",
-    location: "Utako, Abuja",
+    code: "RBTC-MSA",
+    name: "Mombasa RBTC",
+    location: "Mombasa, Mombasa County",
     group: "B+",
     component: "PLASMA" as const,
     available: 24,
     reserved: 3,
+    quarantined: 3,
+    tempCelsius: 6.8,
+    coldChainVerified: false,
   },
 ];
 
@@ -65,63 +86,72 @@ export function NetworkInventoryView() {
 
   return (
     <div className="space-y-6">
-      {/* 8 Blood Group Network Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        {bloodGroups.map((group, index) => (
-          <Panel
-            key={group}
-            className="p-3.5 rounded-2xl bg-white border border-border shadow-sm flex flex-col justify-between space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <BloodBadge group={group} />
-              <StockBadge health={getStockHealth(Math.round(networkStock[index] / 8))} />
-            </div>
-            <div>
-              <strong className="block text-xl font-bold text-ink tabular-nums mt-1">
-                {networkStock[index]}
-              </strong>
-              <span className="text-[10.5px] text-muted block leading-tight">
-                free {formatBloodGroup(group)} units
-              </span>
-            </div>
-            <span className="text-[9.5px] text-slate-400 font-medium">
-              {(index % 3) + 2} hubs active
-            </span>
-          </Panel>
-        ))}
-      </div>
-
-      {/* Critical Deficit Alert Banner */}
-      <div className="p-4 rounded-2xl bg-critical-soft/60 border border-critical/30 flex items-center justify-between gap-4 text-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-critical text-white grid place-items-center shrink-0 shadow-sm">
-            <AlertTriangle size={18} />
+      {/* Unified 8 Blood Group Inventory Matrix */}
+      <div className="rounded-xl bg-white border border-border shadow-xs overflow-hidden">
+        <div className="px-5 py-3 border-b border-border/80 bg-surface-muted/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-ink">Aggregated Blood Reserves</span>
+            <span className="text-muted">· 8 ABO/Rh Groups across connected fulfilment hubs</span>
           </div>
-          <div>
-            <strong className="block text-xs font-bold text-ink">
-              AB− Screened Inventory is Below Critical Network Threshold
-            </strong>
-            <p className="text-slate-600 text-[11.5px] mt-0.5">
-              Only 14 free units remain across two participating regional blood banks in Abuja.
-            </p>
-          </div>
+          <span className="text-[11px] font-semibold text-slate-600 tabular-nums">
+            Total Free Available: {networkStock.reduce((a, b) => a + b, 0)} units
+          </span>
         </div>
 
-        <Link
-          href="/admin/facilities"
-          className="inline-flex items-center gap-1 text-xs font-bold text-critical hover:underline whitespace-nowrap"
-        >
-          Review facilities <ArrowRight size={13} />
-        </Link>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 divide-y sm:divide-y-0 sm:divide-x divide-border">
+          {bloodGroups.map((group, index) => {
+            const count = networkStock[index];
+            return (
+              <div
+                key={group}
+                className="p-3.5 flex flex-col justify-between hover:bg-surface-muted/50 transition-colors"
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-brand-soft border border-brand/20 font-bold text-xs text-brand-dark">
+                    {group}
+                  </span>
+                  <StockBadge health={getStockHealth(Math.round(count / 8))} />
+                </div>
+                <div className="my-1.5">
+                  <strong className="text-xl font-bold tracking-tight text-ink tabular-nums block">
+                    {count}
+                  </strong>
+                  <span className="text-[10.5px] text-muted block truncate">
+                    free {formatBloodGroup(group)}
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-400 font-medium">
+                  {(index % 3) + 4} hubs active
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
+      {/* Deficit Alert Banner */}
+      <FeedbackBanner
+        tone="warning"
+        title="AB− &amp; O− Screened Reserves Below Regional Buffer Threshold"
+        message="Only 14 free AB− units and 31 free O− units remain across the regional hubs. Universal O− conservation rules and cold-chain safety gates are enforced."
+        action={
+          <ActionLink
+            href="/admin/facilities"
+            pendingLabel="Opening…"
+            className="text-amber-800 hover:text-amber-900 whitespace-nowrap text-xs font-semibold"
+          >
+            Review facilities <ArrowRight size={13} />
+          </ActionLink>
+        }
+      />
+
       {/* Facility Inventory Table */}
-      <div className="p-6 rounded-3xl bg-white border border-border shadow-sm space-y-4">
+      <div className="p-5 rounded-xl bg-white border border-border shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-border">
           <div>
             <h2 className="text-base font-bold text-ink">Facilities with Available Stock</h2>
             <p className="text-xs text-muted mt-0.5">
-              Screened inventory visible and ready for emergency requisition
+              Screened inventory visible and cold-chain verified for emergency requisition
             </p>
           </div>
 
@@ -150,7 +180,7 @@ export function NetworkInventoryView() {
               <th className="py-3 px-4">Available</th>
               <th className="py-3 px-4">Reserved</th>
               <th className="py-3 px-4">Free Available</th>
-              <th className="py-3 px-4">Last Sync</th>
+              <th className="py-3 px-4">Cold-Chain Gate</th>
               <th className="py-3 px-4 text-right">Action</th>
             </tr>
           </thead>
@@ -162,7 +192,12 @@ export function NetworkInventoryView() {
                     <div className="w-7 h-7 rounded-lg bg-brand-soft border border-brand/20 grid place-items-center text-brand-dark shrink-0">
                       <Building2 size={14} />
                     </div>
-                    <strong className="font-bold text-ink text-[13px]">{facility.name}</strong>
+                    <div>
+                      <strong className="font-bold text-ink text-[13px] block">
+                        {facility.name}
+                      </strong>
+                      <span className="text-[10.5px] text-muted">{facility.code}</span>
+                    </div>
                   </div>
                 </td>
                 <td className="py-3.5 px-4 text-slate-700 font-medium">{facility.location}</td>
@@ -186,16 +221,17 @@ export function NetworkInventoryView() {
                   {facility.available - facility.reserved}{" "}
                   <span className="text-muted font-normal text-[11px]">units</span>
                 </td>
-                <td className="py-3.5 px-4 text-muted text-[11.5px] whitespace-nowrap">
-                  2 min ago
+                <td className="py-3.5 px-4">
+                  <ColdChainBadge
+                    verified={facility.coldChainVerified}
+                    tempCelsius={facility.tempCelsius}
+                    quarantinedUnits={facility.quarantined}
+                  />
                 </td>
                 <td className="py-3.5 px-4 text-right">
-                  <Link
-                    href={`/admin/facilities/${facility.id}`}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors"
-                  >
+                  <ActionLink href={`/admin/facilities/${facility.id}`} pendingLabel="Inspecting…">
                     Inspect <ArrowRight size={13} />
-                  </Link>
+                  </ActionLink>
                 </td>
               </tr>
             ))}

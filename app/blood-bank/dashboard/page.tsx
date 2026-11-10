@@ -12,9 +12,12 @@ import {
 } from "lucide-react";
 
 import {
+  ActionLink,
   BloodBadge,
   ButtonLink,
+  ColdChainBadge,
   EmptyState,
+  FeedbackBanner,
   Panel,
   SectionHeader,
   StatCard,
@@ -114,26 +117,28 @@ export default async function BloodBankDashboard() {
           {priorityRequest ? (
             <PriorityRequest request={priorityRequest} />
           ) : (
-            <Panel>
-              <EmptyState
-                title="No assigned requests"
-                description="Hospital requests selected for this blood bank will appear here."
-              />
+            <Panel className="p-6 border border-border bg-white rounded-2xl flex flex-col items-center justify-center text-center min-h-[160px] space-y-2.5 shadow-xs">
+              <span className="w-10 h-10 rounded-full bg-surface-muted text-muted grid place-items-center border border-border">
+                <Clock3 size={18} />
+              </span>
+              <div>
+                <h3 className="text-sm font-semibold text-ink">No pending requisitions</h3>
+                <p className="text-xs text-muted max-w-sm mt-0.5 leading-relaxed">
+                  Fulfilment queue is idle. When a regional hospital selects this blood bank, incoming emergency orders will appear here for verification and dispatch.
+                </p>
+              </div>
             </Panel>
           )}
         </div>
 
         <Panel className="p-6 space-y-5">
           <SectionHeader
-            title="Inventory health"
+            title="Inventory & cold-chain health"
             description="Free screened units ready for dispatch"
             action={
-              <Link
-                href="/blood-bank/inventory"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors"
-              >
+              <ActionLink href="/blood-bank/inventory" pendingLabel="Opening…">
                 Full inventory <ArrowRight size={13} />
-              </Link>
+              </ActionLink>
             }
           />
 
@@ -151,18 +156,11 @@ export default async function BloodBankDashboard() {
           )}
 
           {lowStock && (
-            <div className="p-4 rounded-2xl bg-warning-soft/60 border border-warning/30 flex items-start gap-3 text-xs">
-              <AlertTriangle size={18} className="text-warning shrink-0 mt-0.5" />
-              <div>
-                <strong className="font-semibold text-ink block">
-                  {formatBloodGroup(lowStock.bloodGroup)} {formatComponent(lowStock.component)} is{" "}
-                  {getStockHealth(getFreeUnits(lowStock)).toLowerCase()}
-                </strong>
-                <p className="text-slate-600 text-[11.5px] mt-0.5 leading-relaxed">
-                  {getFreeUnits(lowStock)} free units remain after current reservations.
-                </p>
-              </div>
-            </div>
+            <FeedbackBanner
+              tone="warning"
+              title={`${formatBloodGroup(lowStock.bloodGroup)} ${formatComponent(lowStock.component)} is ${getStockHealth(getFreeUnits(lowStock)).toLowerCase()}`}
+              message={`${getFreeUnits(lowStock)} free units remain after current reservations. Universal O− conservation rules are active.`}
+            />
           )}
         </Panel>
       </div>
@@ -288,6 +286,13 @@ function InventoryHealthCard({ item }: { item: InventoryItem }) {
       <div className="text-[10.5px] text-muted flex items-center justify-between">
         <span>{item.availableUnits} available</span>
         <span>{item.reservedUnits} reserved</span>
+      </div>
+      <div className="pt-1 border-t border-border/60">
+        <ColdChainBadge
+          verified={item.coldChainStatus !== "EXCURSION_QUARANTINED"}
+          tempCelsius={item.fridgeTempCelsius}
+          quarantinedUnits={item.quarantinedTempExcursionUnits}
+        />
       </div>
     </div>
   );

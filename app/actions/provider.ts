@@ -1,4 +1,4 @@
-/** Authenticated blood-bank request and inventory mutations exposed as Server Actions. */
+/** Authenticated blood-bank request and inventory mutations and cache revalidation helpers. */
 
 "use server";
 
@@ -24,6 +24,16 @@ import {
   providerRequestMutationSchema,
   type ProviderRequestIntent,
 } from "@/lib/validation/provider";
+
+export async function revalidateProviderDataAction(requestId?: string): Promise<void> {
+  if (requestId) {
+    revalidateProviderData(requestId);
+    return;
+  }
+  revalidatePath("/blood-bank/inventory");
+  revalidatePath("/blood-bank/dashboard");
+  revalidatePath("/blood-bank/requests");
+}
 
 export async function mutateProviderRequestAction(
   _previousState: ProviderActionState,

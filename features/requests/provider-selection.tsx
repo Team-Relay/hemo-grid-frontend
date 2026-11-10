@@ -1,13 +1,22 @@
-/** Renders ranked real candidates and prevents selection when one bank cannot fulfil all units. */
+/** Selects a ranked blood bank directly via the Spring Boot API. */
 
 "use client";
 
-import { useActionState } from "react";
-import { ArrowRight, LoaderCircle } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
+import { z } from "zod";
 
-import { selectProviderAction } from "@/app/actions/blood-requests";
-import { Button } from "@/components/ui/core";
-import { initialRequestMutationState } from "@/lib/requests/action-state";
+import { revalidateHospitalRequestsAction } from "@/app/actions/blood-requests";
+import { Button, FieldError, LoadingSpinner } from "@/components/ui/core";
+import { selectBloodRequestProvider } from "@/lib/api/blood-requests";
+import { ApiClientError } from "@/lib/api/errors";
+import { clearClientSessionCookie, getClientAccessToken } from "@/lib/auth/client-session";
+import {
+  initialRequestMutationState,
+  type RequestMutationActionState,
+} from "@/lib/requests/action-state";
+import { providerIdSchema, requestIdSchema } from "@/lib/validation/blood-request";
 
 export function ProviderSelection({
   requestId,
@@ -20,13 +29,74 @@ export function ProviderSelection({
   units: number;
   variant?: "primary" | "inline";
 }) {
-  const [state, formAction, isPending] = useActionState(
-    selectProviderAction,
-    initialRequestMutationState,
-  );
+  const router = useRouter();
+  const [state, setState] = useState<RequestMutationActionState>(initialRequestMutationState);
+  const [isPending, setIsPending] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending) return;
+
+    const validated = z
+      .object({ requestId: requestIdSchema, providerId: providerIdSchema })
+      .safeParse({
+        requestId,
+        providerId,
+      });
+
+    if (!validated.success) {
+      setState({ message: "The selected request or provider is invalid. Refresh and try again." });
+      return;
+    }
+
+    const accessToken = getClientAccessToken();
+    if (!accessToken) {
+      router.replace("/login?reason=session-expired");
+      return;
+    }
+
+    setIsPending(true);
+    setState(initialRequestMutationState);
+
+    try {
+      await selectBloodRequestProvider(
+        accessToken,
+        validated.data.requestId,
+        validated.data.providerId,
+      );
+      await revalidateHospitalRequestsAction(validated.data.requestId);
+      router.push(`/hospital/requests/${validated.data.requestId}`);
+    } catch (error) {
+      setIsPending(false);
+      if (error instanceof ApiClientError) {
+        if (error.status === 401) {
+          clearClientSessionCookie();
+          router.replace("/login?reason=session-expired");
+          return;
+        }
+        if (error.status === 403) {
+          setState({ message: "Your account cannot perform this hospital action." });
+          return;
+        }
+        if (error.status === 404) {
+          setState({ message: "This request or provider is no longer available." });
+          return;
+        }
+        setState({ message: error.message });
+        return;
+      }
+
+      setState({
+        message: "HemoGrid could not reach the server. Check your connection and try again.",
+      });
+    }
+  }
 
   return (
-    <form action={formAction} className={variant === "primary" ? "space-y-2" : "inline-grid gap-1"}>
+    <form
+      onSubmit={handleSubmit}
+      className={variant === "primary" ? "space-y-2" : "inline-grid gap-1"}
+    >
       <input type="hidden" name="requestId" value={requestId} />
       <input type="hidden" name="providerId" value={providerId} />
 
@@ -43,12 +113,10 @@ export function ProviderSelection({
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex items-center justify-end gap-1 border-0 bg-transparent text-xs font-semibold text-brand hover:text-brand-dark transition-colors disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex items-center justify-end gap-1.5 border-0 bg-transparent text-xs font-semibold text-brand hover:text-brand-dark transition-colors disabled:cursor-wait disabled:opacity-60"
         >
           {isPending ? (
-            <>
-              <LoaderCircle size={13} className="animate-[spin_700ms_linear_infinite]" /> Selecting…
-            </>
+            <LoadingSpinner size={13} label="Selecting…" />
           ) : (
             <>
               Select <ArrowRight size={13} />
@@ -57,11 +125,7 @@ export function ProviderSelection({
         </button>
       )}
 
-      {state.message && (
-        <p className="m-0 max-w-[260px] text-[10px] leading-4 text-critical" role="alert">
-          {state.message}
-        </p>
-      )}
+      {state.message && <FieldError message={state.message} className="max-w-[260px]" />}
     </form>
   );
 }

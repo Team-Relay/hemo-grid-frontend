@@ -1,4 +1,4 @@
-/** Hospital blood-request mutations exposed as Next.js Server Actions. */
+/** Hospital blood-request mutations and cache revalidation helpers. */
 
 "use server";
 
@@ -23,6 +23,10 @@ import {
   providerIdSchema,
   requestIdSchema,
 } from "@/lib/validation/blood-request";
+
+export async function revalidateHospitalRequestsAction(requestId: string): Promise<void> {
+  revalidateHospitalRequests(requestId);
+}
 
 export async function createBloodRequestAction(
   _previousState: RequestFormActionState,

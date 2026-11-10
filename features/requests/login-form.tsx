@@ -1,8 +1,9 @@
-/** Accessible login experience backed by a Server Action and HttpOnly session cookie. */
+/** Accessible login experience backed directly by the Spring Boot API and shared session cookie. */
 
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   ArrowRight,
@@ -14,12 +15,25 @@ import {
   LockKeyhole,
   Mail,
   ShieldCheck,
+  ThermometerSnowflake,
 } from "lucide-react";
 import Link from "next/link";
-import { loginAction } from "@/app/actions/auth";
+import { z } from "zod";
+
+import { syncSessionCookieAction } from "@/app/actions/auth";
 import { Wordmark } from "@/components/layout/app-shell";
-import { Button, cn } from "@/components/ui/core";
-import { initialLoginState } from "@/lib/auth/login-action-state";
+import { Button, FieldError, cn } from "@/components/ui/core";
+import { login } from "@/lib/api/auth";
+import { ApiClientError } from "@/lib/api/errors";
+import { setClientSessionCookie } from "@/lib/auth/client-session";
+import { initialLoginState, type LoginActionState } from "@/lib/auth/login-action-state";
+import { workspacePathForRole } from "@/lib/auth/roles";
+
+const loginSchema = z.object({
+  email: z.email("Enter a valid work email address.").trim(),
+  password: z.string().min(1, "Enter your password."),
+  remember: z.boolean(),
+});
 
 const roles = [
   {
@@ -45,14 +59,84 @@ const roles = [
   },
 ] as const;
 
+function fieldErrorsByName(error: ApiClientError): LoginActionState["fieldErrors"] {
+  const grouped: NonNullable<LoginActionState["fieldErrors"]> = {};
+
+  for (const fieldError of error.fieldErrors) {
+    if (fieldError.field === "email" || fieldError.field === "password") {
+      grouped[fieldError.field] = [...(grouped[fieldError.field] ?? []), fieldError.message];
+    }
+  }
+
+  return grouped;
+}
+
 export function LoginForm() {
+  const router = useRouter();
   const [role, setRole] = useState<(typeof roles)[number]>(roles[0]);
   const [visible, setVisible] = useState(false);
   const [password, setPassword] = useState<string>(role.password);
-  const [state, formAction, isPending] = useActionState(loginAction, initialLoginState);
+  const [state, setState] = useState<LoginActionState>(initialLoginState);
+  const [isPending, setIsPending] = useState(false);
+
   const emailError = state.fieldErrors?.email?.[0];
   const passwordError = state.fieldErrors?.password?.[0];
   const formError = !emailError && !passwordError ? state.message : "";
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending) return;
+
+    const formData = new FormData(event.currentTarget);
+    const validated = loginSchema.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+      remember: formData.get("remember") === "on",
+    });
+
+    if (!validated.success) {
+      const fields = z.flattenError(validated.error).fieldErrors;
+      setState({
+        message: "Check the highlighted fields and try again.",
+        fieldErrors: {
+          email: fields.email,
+          password: fields.password,
+        },
+      });
+      return;
+    }
+
+    setIsPending(true);
+    setState(initialLoginState);
+
+    try {
+      const response = await login({
+        email: validated.data.email,
+        password: validated.data.password,
+      });
+
+      setClientSessionCookie(
+        response.accessToken,
+        response.expiresIn,
+        validated.data.remember,
+      );
+      await syncSessionCookieAction(response, validated.data.remember);
+      router.replace(workspacePathForRole(response.user.role));
+    } catch (error) {
+      setIsPending(false);
+      if (error instanceof ApiClientError) {
+        setState({
+          message: error.status === 401 ? "The email or password is incorrect." : error.message,
+          fieldErrors: fieldErrorsByName(error),
+        });
+        return;
+      }
+
+      setState({
+        message: "Sign-in failed. Please try again.",
+      });
+    }
+  }
 
   return (
     <main className="grid min-h-screen grid-cols-1 bg-white lg:grid-cols-2">
@@ -69,22 +153,25 @@ export function LoginForm() {
         <div className="relative z-10 max-w-[610px] py-10">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2 text-[11px] font-semibold text-success shadow-[0_2px_10px_rgba(18,183,106,0.06)]">
             <i className="h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_0_4px_rgba(18,183,106,0.12)]" />
-            Abuja network operational
+            Regional blood grid operational
           </span>
           <h1 className="mt-7 max-w-[610px] text-[clamp(36px,3.15vw,46px)] font-medium leading-[1.05] tracking-[-0.04em] text-ink">
             <span className="whitespace-nowrap">Critical blood coordination,</span> without the
             noise.
           </h1>
           <p className="mt-6 max-w-[510px] text-[15px] font-light leading-7 text-muted">
-            One secure operational view connecting hospitals, screened inventory, and urgent
-            transfers across the network.
+            One secure operational view connecting hospitals, cold-chain verified inventory, and
+            ABO/Rh smart dispatch across the regional transfusion network.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-[11px] text-[#46534f]">
             <span className="inline-flex items-center gap-2">
-              <ShieldCheck size={15} className="text-brand" /> Verified facilities
+              <ShieldCheck size={15} className="text-brand" /> ABO/Rh O− conservation
             </span>
             <span className="inline-flex items-center gap-2">
-              <Activity size={15} className="text-brand" /> Live availability
+              <ThermometerSnowflake size={15} className="text-brand" /> 2°C–6°C cold-chain guard
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <Activity size={15} className="text-brand" /> Road-corridor ETA routing
             </span>
           </div>
         </div>
@@ -96,7 +183,7 @@ export function LoginForm() {
                 Network visibility
               </strong>
               <span className="mt-1 block text-[10px] font-light text-muted">
-                Live operational coverage across Abuja
+                Live operational coverage across 6 RBTCs, 9 Satellites &amp; 32 Hospitals
               </span>
             </div>
             <span className="inline-flex items-center gap-2 rounded-full bg-success-soft px-2.5 py-1.5 text-[10px] font-semibold text-success">
@@ -117,15 +204,15 @@ export function LoginForm() {
 
           <div className="grid grid-cols-3 border-t border-border pt-4">
             {[
-              ["18", "Connected facilities"],
-              ["1,284", "Units visible"],
-              ["4", "Active transfers"],
+              ["47", "Connected facilities"],
+              ["94.6%", "Emergency match rate"],
+              ["2.51h", "Median road ETA"],
             ].map(([value, label], index) => (
               <div
                 className={cn("min-w-0", index > 0 && "border-l border-border pl-5")}
                 key={label}
               >
-                <strong className="block text-[17px] font-semibold tracking-[-0.025em] text-ink">
+                <strong className="block text-[17px] font-semibold tracking-[-0.025em] text-ink tabular-nums">
                   {value}
                 </strong>
                 <span className="mt-1 block text-[9.5px] font-light uppercase tracking-[0.035em] text-muted">
@@ -158,7 +245,7 @@ export function LoginForm() {
             </p>
           </div>
 
-          <form action={formAction} noValidate>
+          <form onSubmit={handleSubmit} noValidate>
             <fieldset className="mb-6 border-0 p-0">
               <legend className="mb-2.5 text-[11.5px] font-medium text-[#35423f]">
                 Workspace type
@@ -171,6 +258,7 @@ export function LoginForm() {
                     onClick={() => {
                       setRole(item);
                       setPassword(item.password);
+                      setState(initialLoginState);
                     }}
                     className={cn(
                       "relative flex min-h-[76px] min-w-0 flex-col items-start justify-center gap-2 rounded-[11px] px-3 text-left text-[10.5px] font-medium transition-all duration-150 disabled:cursor-wait",
@@ -220,15 +308,7 @@ export function LoginForm() {
                   className="min-h-[46px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-[#4e5b58] outline-none"
                 />
               </div>
-              {emailError && (
-                <span
-                  id="email-error"
-                  className="mt-2 block text-[10.5px] text-critical"
-                  role="alert"
-                >
-                  {emailError}
-                </span>
-              )}
+              <FieldError id="email-error" message={emailError} />
             </div>
 
             <div className="mb-4">
@@ -264,15 +344,7 @@ export function LoginForm() {
                   {visible ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
-              {(passwordError || formError) && (
-                <span
-                  id="login-error"
-                  className="mt-2 block text-[10.5px] text-critical"
-                  role="alert"
-                >
-                  {passwordError || formError}
-                </span>
-              )}
+              <FieldError id="login-error" message={passwordError || formError} />
             </div>
 
             <label className="mb-6 flex items-center gap-2.5 text-[11px] font-light text-[#53615e]">
@@ -297,14 +369,13 @@ export function LoginForm() {
             <div className="mt-6 flex items-start gap-2.5 border-t border-border pt-5 text-[10px] font-light leading-5 text-muted">
               <ShieldCheck size={14} className="mt-0.5 shrink-0 text-success" />
               <p className="m-0">
-                Demo access is verified securely. Your authenticated session is protected and is
-                never exposed to browser scripts.
+                Access is verified securely against the HemoGrid National API.
               </p>
             </div>
           </form>
 
           <p className="mt-8 text-[9.5px] font-light uppercase tracking-[0.06em] text-muted-2">
-            HemoGrid coordination console · Secure demo environment
+            HemoGrid Clinical Coordination Network · Enterprise Platform
           </p>
         </div>
       </section>

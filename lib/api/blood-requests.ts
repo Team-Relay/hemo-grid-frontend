@@ -1,8 +1,6 @@
 /**
- * Typed hospital blood-request reads from the Spring Boot API.
+ * Typed hospital blood-request reads and mutations to the Spring Boot API.
  */
-
-import "server-only";
 
 import type { BackendBloodRequest, BackendCandidateList } from "@/lib/api/backend-types";
 import { apiRequest } from "@/lib/api/client";

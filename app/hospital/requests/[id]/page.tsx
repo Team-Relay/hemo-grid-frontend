@@ -36,7 +36,7 @@ export default async function HospitalRequestDetail({
 
   return (
     <>
-      <RequestDetailPoller status={request.status} />
+      <RequestDetailPoller requestId={request.id} status={request.status} />
       <PageHeader
         backHref="/hospital/requests"
         title={`Request ${request.reference}`}

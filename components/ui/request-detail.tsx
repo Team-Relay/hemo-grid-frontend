@@ -1,8 +1,9 @@
 /** Shared request summary and lifecycle timeline used by hospital and provider views. */
 
-import { Check, Clock3 } from "lucide-react";
+import { Check, Clock3, ShieldAlert } from "lucide-react";
 import {
   BloodBadge,
+  ButtonLink,
   Panel,
   SectionHeader,
   StatusBadge,
@@ -26,6 +27,11 @@ export function RequestHero({ request }: { request: BloodRequest }) {
               {formatBloodGroup(request.bloodGroup)} {formatComponent(request.component)}
             </h1>
             <p className="m-0 text-muted text-sm">{request.units} units requested</p>
+            {request.unknownPatientBloodGroup && (
+              <span className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-semibold">
+                <ShieldAlert size={12} /> Universal O− Trauma Protocol (Unknown Patient ABO/Rh)
+              </span>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-3 mt-5 pt-[18px] border-t border-border [&>div+div]:pl-[18px] [&>div+div]:border-l [&>div+div]:border-border [&_span]:block [&_span]:text-muted [&_span]:text-[10.5px] [&_strong]:block [&_strong]:mt-[5px] [&_strong]:text-base">
@@ -138,6 +144,12 @@ export function ProviderCard({ request }: { request: BloodRequest }) {
             <strong>{request.distanceKm} km</strong>
           </div>
         )}
+        {request.estimatedTransitHours !== undefined && (
+          <div>
+            <span>Road transit ETA</span>
+            <strong>~{request.estimatedTransitHours}h</strong>
+          </div>
+        )}
         <div>
           <span>Selection status</span>
           <strong className={request.providerName ? "text-success" : "text-muted"}>
@@ -146,6 +158,15 @@ export function ProviderCard({ request }: { request: BloodRequest }) {
           </strong>
         </div>
       </div>
+      {request.status === "REQUESTED" && !request.providerId && (
+        <ButtonLink
+          href={`/hospital/requests/${request.id}/matches`}
+          variant="secondary"
+          className="w-full mt-3"
+        >
+          View ranked blood banks
+        </ButtonLink>
+      )}
     </Panel>
   );
 }

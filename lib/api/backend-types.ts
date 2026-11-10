@@ -1,19 +1,25 @@
 /**
- * Exact TypeScript representations of the DTOs currently returned by the
- * Spring Boot API. UI components should consume mapped view models instead of
- * importing these transport types directly.
+ * Exact TypeScript representations of the DTOs returned by the Spring Boot API
+ * (including optional HemoGrid v2 Smart Dispatch and Cold-Chain fields).
  */
 
 import type {
   BloodComponent,
   BloodGroup,
   BloodRequestStatus,
+  ColdChainStatus,
+  FacilityTier,
+  MatchCompatibilityType,
   OrganizationType,
   RequestUrgency,
 } from "@/types/domain";
 
 export type UserRole =
-  "PLATFORM_ADMIN" | "HOSPITAL_ADMIN" | "HOSPITAL_STAFF" | "BLOOD_BANK_ADMIN" | "BLOOD_BANK_STAFF";
+  | "PLATFORM_ADMIN"
+  | "HOSPITAL_ADMIN"
+  | "HOSPITAL_STAFF"
+  | "BLOOD_BANK_ADMIN"
+  | "BLOOD_BANK_STAFF";
 
 export type ApiErrorCode =
   | "VALIDATION_FAILED"
@@ -95,17 +101,31 @@ export interface BackendBloodRequest {
   deliveredAt: string | null;
   cancelledAt: string | null;
   updatedAt: string;
+  unknownPatientBloodGroup?: boolean;
+  estimatedTransitHours?: number | null;
+  matchType?: MatchCompatibilityType;
+  coldChainVerified?: boolean;
 }
 
 export interface BackendCandidate {
   organizationId: string;
   organizationName: string;
+  facilityCode?: string;
+  facilityTier?: FacilityTier;
   bloodGroup: BloodGroup;
+  offeredBloodGroup?: BloodGroup;
   component: BloodComponent;
   unitsFree: number;
   distanceKm: number | null;
+  estimatedTransitHours?: number | null;
   canFullyFulfil: boolean;
   rank: number;
+  matchType?: MatchCompatibilityType;
+  coldChainVerified?: boolean;
+  fridgeTempCelsius?: number;
+  quarantinedUnitsExcluded?: number;
+  conservationRuleApplied?: boolean;
+  recommendationReasons?: string[];
 }
 
 export interface BackendCandidateList {
@@ -121,4 +141,8 @@ export interface BackendInventoryItem {
   unitsReserved: number;
   unitsFree: number;
   updatedAt: string;
+  quarantinedTempExcursionUnits?: number;
+  fridgeTempCelsius?: number;
+  coldChainStatus?: ColdChainStatus;
+  expiringWithin7DaysUnits?: number;
 }

@@ -13,7 +13,7 @@ function tokenFor(payload: Record<string, unknown>): string {
 }
 
 describe("optimisticUserFromAccessToken", () => {
-  const now = Date.parse("2026-08-25T12:00:00Z");
+  const now = Date.parse("2026-11-10T12:00:00Z");
 
   it("creates a generic hospital shell identity from current claims", () => {
     const user = optimisticUserFromAccessToken(

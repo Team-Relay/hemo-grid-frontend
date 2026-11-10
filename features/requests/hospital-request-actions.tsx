@@ -1,14 +1,28 @@
-/** Hospital confirmation controls for provider selection and eligible request cancellation. */
+/** Hospital confirmation controls for provider selection and eligible request cancellation via the Spring Boot API. */
 
 "use client";
 
-import { useActionState, useCallback, useState } from "react";
+import { useCallback, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock3, X, XCircle } from "lucide-react";
 
-import { cancelRequestAction } from "@/app/actions/blood-requests";
-import { Button, Panel, SectionHeader, StatusBadge } from "@/components/ui/core";
-import { initialRequestMutationState } from "@/lib/requests/action-state";
+import { revalidateHospitalRequestsAction } from "@/app/actions/blood-requests";
+import {
+  Button,
+  FeedbackBanner,
+  Panel,
+  SectionHeader,
+  StatusBadge,
+} from "@/components/ui/core";
+import { cancelBloodRequest } from "@/lib/api/blood-requests";
+import { ApiClientError } from "@/lib/api/errors";
+import { clearClientSessionCookie, getClientAccessToken } from "@/lib/auth/client-session";
+import {
+  initialRequestMutationState,
+  type RequestMutationActionState,
+} from "@/lib/requests/action-state";
 import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { requestIdSchema } from "@/lib/validation/blood-request";
 import type { BloodRequest, BloodRequestStatus } from "@/types/domain";
 
 const terminalStatuses: readonly BloodRequestStatus[] = [
@@ -20,16 +34,66 @@ const terminalStatuses: readonly BloodRequestStatus[] = [
 const cancellableStatuses: readonly BloodRequestStatus[] = ["REQUESTED", "ACCEPTED", "PREPARING"];
 
 export function HospitalRequestActions({ request }: { request: BloodRequest }) {
+  const router = useRouter();
   const [confirming, setConfirming] = useState(false);
-  const [state, formAction, isPending] = useActionState(
-    cancelRequestAction,
-    initialRequestMutationState,
-  );
+  const [state, setState] = useState<RequestMutationActionState>(initialRequestMutationState);
+  const [isPending, setIsPending] = useState(false);
   const closeDialog = useCallback(() => setConfirming(false), []);
   const dialogRef = useDialogFocus<HTMLFormElement>(confirming, closeDialog);
   const terminal = terminalStatuses.includes(request.status);
   const canCancel = cancellableStatuses.includes(request.status);
   const Icon = terminal && request.status !== "DELIVERED" ? XCircle : CheckCircle2;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending) return;
+
+    const validated = requestIdSchema.safeParse(request.id);
+    if (!validated.success) {
+      setState({ message: "The request identifier is invalid. Refresh and try again." });
+      return;
+    }
+
+    const accessToken = getClientAccessToken();
+    if (!accessToken) {
+      router.replace("/login?reason=session-expired");
+      return;
+    }
+
+    setIsPending(true);
+    setState(initialRequestMutationState);
+
+    try {
+      await cancelBloodRequest(accessToken, validated.data);
+      await revalidateHospitalRequestsAction(validated.data);
+      setIsPending(false);
+      setConfirming(false);
+      router.refresh();
+    } catch (error) {
+      setIsPending(false);
+      if (error instanceof ApiClientError) {
+        if (error.status === 401) {
+          clearClientSessionCookie();
+          router.replace("/login?reason=session-expired");
+          return;
+        }
+        if (error.status === 403) {
+          setState({ message: "Your account cannot perform this hospital action." });
+          return;
+        }
+        if (error.status === 404) {
+          setState({ message: "This request or provider is no longer available." });
+          return;
+        }
+        setState({ message: error.message });
+        return;
+      }
+
+      setState({
+        message: "HemoGrid could not reach the server. Check your connection and try again.",
+      });
+    }
+  }
 
   return (
     <>
@@ -77,7 +141,7 @@ export function HospitalRequestActions({ request }: { request: BloodRequest }) {
           }}
         >
           <form
-            action={formAction}
+            onSubmit={handleSubmit}
             ref={dialogRef}
             className="w-[min(440px,100%)] p-[22px] border border-border rounded-[18px] bg-white shadow-[0_20px_60px_rgba(23,32,30,0.18)]"
             role="dialog"
@@ -112,12 +176,7 @@ export function HospitalRequestActions({ request }: { request: BloodRequest }) {
             </p>
 
             {state.message && (
-              <p
-                className="mt-3 rounded-xl border border-critical/25 bg-critical-soft px-3 py-2 text-[11px] text-critical"
-                role="alert"
-              >
-                {state.message}
-              </p>
+              <FeedbackBanner tone="critical" message={state.message} className="mt-3" />
             )}
 
             <div className="flex justify-end gap-2 mt-5">

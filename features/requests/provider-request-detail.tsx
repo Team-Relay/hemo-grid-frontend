@@ -1,8 +1,9 @@
-/** Interactive provider detail UI backed exclusively by authenticated Server Actions. */
+/** Interactive provider detail UI backed directly by Spring Boot provider endpoints. */
 
 "use client";
 
-import { useActionState, useCallback, useState } from "react";
+import { useCallback, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   ArrowRight,
@@ -14,12 +15,33 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { mutateProviderRequestAction } from "@/app/actions/provider";
-import { Button, PageHeader, Panel, SectionHeader, StatusBadge } from "@/components/ui/core";
+import { revalidateProviderDataAction } from "@/app/actions/provider";
+import {
+  Button,
+  ColdChainBadge,
+  FeedbackBanner,
+  PageHeader,
+  Panel,
+  SectionHeader,
+  StatusBadge,
+} from "@/components/ui/core";
 import { MetadataCard, RequestHero, RequestTimeline } from "@/components/ui/request-detail";
-import { initialProviderActionState } from "@/lib/requests/provider-action-state";
+import { ApiClientError } from "@/lib/api/errors";
+import {
+  acceptProviderRequest,
+  declineProviderRequest,
+  updateProviderRequestStatus,
+} from "@/lib/api/provider-requests";
+import { clearClientSessionCookie, getClientAccessToken } from "@/lib/auth/client-session";
+import {
+  initialProviderActionState,
+  type ProviderActionState,
+} from "@/lib/requests/provider-action-state";
 import { useDialogFocus } from "@/lib/use-dialog-focus";
-import type { ProviderRequestIntent } from "@/lib/validation/provider";
+import {
+  providerRequestMutationSchema,
+  type ProviderRequestIntent,
+} from "@/lib/validation/provider";
 import type { BloodRequest, InventoryItem } from "@/types/domain";
 
 const transitions: Partial<
@@ -34,6 +56,17 @@ const transitions: Partial<
   IN_TRANSIT: { label: "Mark delivered", intent: "DELIVERED", icon: Check },
 };
 
+function providerSuccessMessage(intent: ProviderRequestIntent): string {
+  const messages: Record<ProviderRequestIntent, string> = {
+    ACCEPT: "Request accepted and inventory reserved.",
+    DECLINE: "Request declined. No inventory was reserved.",
+    PREPARING: "Request marked as preparing.",
+    IN_TRANSIT: "Request marked as in transit.",
+    DELIVERED: "Delivery confirmed and reserved inventory consumed.",
+  };
+  return messages[intent];
+}
+
 export function ProviderRequestDetail({
   request,
   matchingInventory,
@@ -41,12 +74,11 @@ export function ProviderRequestDetail({
   request: BloodRequest;
   matchingInventory?: InventoryItem;
 }) {
+  const router = useRouter();
   const [confirm, setConfirm] = useState<ProviderRequestIntent | null>(null);
   const [dismissedCompletion, setDismissedCompletion] = useState<number>();
-  const [state, formAction, isPending] = useActionState(
-    mutateProviderRequestAction,
-    initialProviderActionState,
-  );
+  const [state, setState] = useState<ProviderActionState>(initialProviderActionState);
+  const [isPending, setIsPending] = useState(false);
   const closeDialog = useCallback(() => setConfirm(null), []);
   const dialogRef = useDialogFocus<HTMLFormElement>(Boolean(confirm), closeDialog);
   const transition = transitions[request.status];
@@ -61,32 +93,91 @@ export function ProviderRequestDetail({
     setConfirm(intent);
   }
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending || !confirm) return;
+
+    const validated = providerRequestMutationSchema.safeParse({
+      requestId: request.id,
+      intent: confirm,
+    });
+    if (!validated.success) {
+      setState({
+        message: "The request action is invalid. Refresh the page and try again.",
+        completedAt: Date.now(),
+      });
+      return;
+    }
+
+    const accessToken = getClientAccessToken();
+    if (!accessToken) {
+      router.replace("/login?reason=session-expired");
+      return;
+    }
+
+    setIsPending(true);
+
+    try {
+      const { requestId, intent } = validated.data;
+      if (intent === "ACCEPT") await acceptProviderRequest(accessToken, requestId);
+      else if (intent === "DECLINE") await declineProviderRequest(accessToken, requestId);
+      else await updateProviderRequestStatus(accessToken, requestId, intent);
+
+      await revalidateProviderDataAction(requestId);
+      setIsPending(false);
+      setState({
+        successMessage: providerSuccessMessage(intent),
+        completedAt: Date.now(),
+      });
+      closeDialog();
+      router.refresh();
+    } catch (error) {
+      setIsPending(false);
+      if (error instanceof ApiClientError) {
+        if (error.status === 401) {
+          clearClientSessionCookie();
+          router.replace("/login?reason=session-expired");
+          return;
+        }
+        if (error.status === 403) {
+          setState({
+            message: "Your account cannot perform this blood-bank action.",
+            completedAt: Date.now(),
+          });
+          return;
+        }
+        if (error.status === 404) {
+          setState({
+            message: "This request or inventory row is no longer available.",
+            completedAt: Date.now(),
+          });
+          return;
+        }
+        setState({ message: error.message, completedAt: Date.now() });
+        return;
+      }
+
+      setState({
+        message: "HemoGrid could not reach the server. Check your connection and try again.",
+        completedAt: Date.now(),
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         backHref="/blood-bank/requests"
         title={request.reference}
-        description="Inspect live inventory and manage this request through the fulfilment lifecycle."
+        description="Inspect live inventory, cold-chain compliance, and manage this request through the fulfilment lifecycle."
       />
 
-      {successVisible && (
-        <div
-          className="p-4 rounded-2xl bg-success-soft border border-success/30 flex items-center justify-between gap-3 text-xs text-emerald-800"
-          role="status"
-        >
-          <div className="flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-success shrink-0" />
-            <span className="font-semibold">{state.successMessage}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setDismissedCompletion(state.completedAt)}
-            aria-label="Dismiss notice"
-            className="text-emerald-700 hover:text-emerald-900 transition-colors"
-          >
-            <X size={15} />
-          </button>
-        </div>
+      {successVisible && state.successMessage && (
+        <FeedbackBanner
+          tone="success"
+          message={state.successMessage}
+          onDismiss={() => setDismissedCompletion(state.completedAt)}
+        />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.9fr] gap-5 items-start">
@@ -137,8 +228,8 @@ export function ProviderRequestDetail({
             <div className="p-3 rounded-xl bg-surface-muted border border-border flex items-start gap-2.5 text-[11px] text-muted">
               <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
               <p className="leading-relaxed">
-                Each change is verified against request ownership, current status, and available
-                inventory. Hospital teams receive updates automatically.
+                Each change is verified against request ownership, current status, and cold-chain
+                verified available inventory. Hospital teams receive updates automatically.
               </p>
             </div>
           </Panel>
@@ -154,7 +245,7 @@ export function ProviderRequestDetail({
           }}
         >
           <form
-            action={formAction}
+            onSubmit={handleSubmit}
             ref={dialogRef}
             className="w-full max-w-md bg-white border border-border rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5"
             role="dialog"
@@ -194,21 +285,11 @@ export function ProviderRequestDetail({
             </div>
 
             {dialogResultApplies && state.successMessage && (
-              <p
-                className="rounded-xl border border-success/25 bg-success-soft px-3 py-2 text-[11px] text-emerald-800"
-                role="status"
-              >
-                {state.successMessage}
-              </p>
+              <FeedbackBanner tone="success" message={state.successMessage} />
             )}
 
             {dialogResultApplies && state.message && (
-              <p
-                className="rounded-xl border border-critical/25 bg-critical-soft px-3 py-2 text-[11px] text-critical"
-                role="alert"
-              >
-                {state.message}
-              </p>
+              <FeedbackBanner tone="critical" message={state.message} />
             )}
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
@@ -255,34 +336,50 @@ function InventoryCheck({
     return (
       <Panel className="p-6 space-y-3">
         <SectionHeader title="Inventory check" description="Exact matching stock at this bank" />
-        <p className="rounded-2xl border border-critical/25 bg-critical-soft p-4 text-xs text-critical">
-          This bank has no matching inventory record for the requested blood group and component, so
-          the request cannot be accepted.
-        </p>
+        <FeedbackBanner
+          tone="critical"
+          message="This bank has no matching inventory record for the requested blood group and component, so the request cannot be accepted."
+        />
       </Panel>
     );
   }
 
   const free = inventory.availableUnits - inventory.reservedUnits;
+  const quarantined = inventory.quarantinedTempExcursionUnits ?? 0;
   const canFulfil = request.status === "REQUESTED" ? free >= request.units : true;
 
   return (
     <Panel className="p-6 space-y-4">
-      <SectionHeader title="Inventory check" description="Live exact-group stock at this bank" />
-      <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-surface-muted border border-border text-center">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <SectionHeader
+          title="Inventory & cold-chain check"
+          description="Live exact-group stock and fridge excursion quarantine status"
+        />
+        <ColdChainBadge
+          verified={inventory.coldChainStatus !== "EXCURSION_QUARANTINED"}
+          tempCelsius={inventory.fridgeTempCelsius}
+          quarantinedUnits={quarantined}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-surface-muted border border-border text-center">
         <div>
           <span className="text-[11px] text-muted block">Available</span>
           <strong className="text-base font-bold text-ink">{inventory.availableUnits} units</strong>
         </div>
-        <div className="border-x border-border">
+        <div className="sm:border-l border-border">
           <span className="text-[11px] text-muted block">Reserved</span>
           <strong className="text-base font-bold text-amber-700">
             {inventory.reservedUnits} units
           </strong>
         </div>
-        <div>
+        <div className="sm:border-l border-border">
           <span className="text-[11px] text-muted block">Free now</span>
           <strong className="text-base font-bold text-emerald-700">{free} units</strong>
+        </div>
+        <div className="sm:border-l border-border">
+          <span className="text-[11px] text-muted block">Quarantined (&gt;6°C)</span>
+          <strong className="text-base font-bold text-slate-700">{quarantined} units</strong>
         </div>
       </div>
 

@@ -1,6 +1,4 @@
-/** Typed server-only client for blood-bank request reads and lifecycle mutations. */
-
-import "server-only";
+/** Typed client for blood-bank request reads and lifecycle mutations. */
 
 import type { BackendBloodRequest } from "@/lib/api/backend-types";
 import { apiRequest } from "@/lib/api/client";

@@ -1,4 +1,4 @@
-/** Navigation link that exposes an immediate pending state during App Router transitions. */
+/** Navigation links and action triggers with immediate reusable loading spinners during App Router transitions. */
 
 "use client";
 
@@ -7,9 +7,34 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+export function LoadingSpinner({
+  size = 15,
+  className = "",
+  label,
+}: {
+  size?: number;
+  className?: string;
+  label?: string;
+}) {
+  return (
+    <>
+      <LoaderCircle
+        className={["button-spinner animate-[spin_700ms_linear_infinite] shrink-0", className]
+          .filter(Boolean)
+          .join(" ")}
+        size={size}
+        strokeWidth={1.9}
+        aria-hidden="true"
+      />
+      {label ? <span>{label}</span> : null}
+    </>
+  );
+}
+
 type PendingLinkProps = Omit<React.ComponentProps<typeof Link>, "href"> & {
   href: string;
   pendingLabel?: string;
+  spinnerSize?: number;
 };
 
 export function PendingLink({ ...props }: PendingLinkProps) {
@@ -23,6 +48,7 @@ function PendingLinkContent({
   href,
   onClick,
   pendingLabel = "Opening…",
+  spinnerSize = 15,
   ...props
 }: PendingLinkProps) {
   const [pending, setPending] = useState(false);
@@ -67,14 +93,7 @@ function PendingLinkContent({
       }}
       {...props}
     >
-      {pending ? (
-        <>
-          <LoaderCircle className="button-spinner" size={15} strokeWidth={1.9} />
-          <span>{pendingLabel}</span>
-        </>
-      ) : (
-        children
-      )}
+      {pending ? <LoadingSpinner size={spinnerSize} label={pendingLabel} /> : children}
     </Link>
   );
 }
@@ -82,13 +101,37 @@ function PendingLinkContent({
 export function ButtonLink({
   className,
   variant = "primary",
+  size = "md",
   ...props
 }: PendingLinkProps & {
   variant?: "primary" | "secondary" | "danger" | "ghost";
+  size?: "sm" | "md";
 }) {
   return (
     <PendingLink
-      className={["button", `button-${variant}`, "button-md", className].filter(Boolean).join(" ")}
+      className={["button", `button-${variant}`, `button-${size}`, className]
+        .filter(Boolean)
+        .join(" ")}
+      {...props}
+    />
+  );
+}
+
+export function ActionLink({
+  className,
+  pendingLabel = "Opening…",
+  ...props
+}: PendingLinkProps) {
+  return (
+    <PendingLink
+      pendingLabel={pendingLabel}
+      spinnerSize={13}
+      className={[
+        "inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors aria-busy:opacity-70 aria-busy:cursor-wait",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       {...props}
     />
   );

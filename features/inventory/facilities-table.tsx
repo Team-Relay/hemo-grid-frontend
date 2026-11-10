@@ -1,11 +1,10 @@
-/** Administrative facility prototype kept separate from authenticated provider inventory. */
+/** Administrative facility directory backed by the Terumo BCT Kenya Blood Network dataset. */
 
 "use client";
 
 import { useMemo, useState } from "react";
 import { ArrowRight, Building2, Hospital, Search } from "lucide-react";
-import Link from "next/link";
-import { Pagination, TableShell } from "@/components/ui/core";
+import { ActionLink, Pagination, TableShell } from "@/components/ui/core";
 import { organizations } from "@/lib/mock/data";
 import type { FacilityStatus, OrganizationType } from "@/types/domain";
 
@@ -18,7 +17,9 @@ export function FacilitiesTable() {
     () =>
       organizations.filter(
         (o) =>
-          `${o.name} ${o.location}`.toLowerCase().includes(q.toLowerCase()) &&
+          `${o.name} ${o.location} ${o.facilityCode ?? ""}`
+            .toLowerCase()
+            .includes(q.toLowerCase()) &&
           (type === "ALL" || o.type === type) &&
           (status === "ALL" || o.networkStatus === status),
       ),
@@ -35,7 +36,7 @@ export function FacilitiesTable() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search facility name or location…"
+            placeholder="Search facility name, code (e.g. RBTC-NBO) or region…"
             className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-surface-muted text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
           />
         </div>
@@ -49,7 +50,7 @@ export function FacilitiesTable() {
           >
             <option value="ALL">All Facility Types</option>
             <option value="HOSPITAL">Hospitals (Trauma/Clinical)</option>
-            <option value="BLOOD_BANK">Blood Banks (Screening/Hubs)</option>
+            <option value="BLOOD_BANK">Blood Banks (RBTCs/Satellites)</option>
           </select>
 
           <select
@@ -58,7 +59,7 @@ export function FacilitiesTable() {
             onChange={(e) => setStatus(e.target.value as typeof status)}
           >
             <option value="ALL">All Telemetry States</option>
-            <option value="ONLINE">Online & Synchronized</option>
+            <option value="ONLINE">Online &amp; Synchronized</option>
             <option value="DEGRADED">Degraded Telemetry</option>
             <option value="OFFLINE">Offline</option>
           </select>
@@ -70,7 +71,7 @@ export function FacilitiesTable() {
         <thead>
           <tr className="border-b border-border text-[11.5px] font-semibold text-muted uppercase tracking-wider text-left">
             <th className="py-3 px-4">Facility Name</th>
-            <th className="py-3 px-4">Classification</th>
+            <th className="py-3 px-4">Tier &amp; Hub</th>
             <th className="py-3 px-4">Location</th>
             <th className="py-3 px-4">Network Status</th>
             <th className="py-3 px-4">Active Requests</th>
@@ -93,13 +94,28 @@ export function FacilitiesTable() {
                     </div>
                     <div>
                       <strong className="block font-bold text-ink text-[13px]">{o.name}</strong>
-                      <span className="text-[11px] text-muted">{o.id}</span>
+                      <span className="text-[11px] text-muted">{o.facilityCode ?? o.id}</span>
                     </div>
                   </div>
                 </td>
 
                 <td className="py-3.5 px-4 font-medium text-slate-700">
-                  {isHospital ? "Trauma Hospital" : "Regional Blood Bank"}
+                  <span className="block">
+                    {o.facilityTier === "RBTC"
+                      ? "RBTC Regional Hub"
+                      : o.facilityTier === "SATELLITE"
+                        ? "Satellite Blood Bank"
+                        : isHospital
+                          ? "Trauma Hospital"
+                          : "Regional Blood Bank"}
+                  </span>
+                  {o.recommendedSupplyCentre &&
+                    o.assignedSupplyCentre &&
+                    o.recommendedSupplyCentre !== o.assignedSupplyCentre && (
+                      <span className="text-[10.5px] text-brand-dark font-semibold">
+                        Corridor: {o.assignedSupplyCentre} → {o.recommendedSupplyCentre}
+                      </span>
+                    )}
                 </td>
 
                 <td className="py-3.5 px-4 text-slate-700 font-medium">{o.location}</td>
@@ -144,12 +160,9 @@ export function FacilitiesTable() {
                 </td>
 
                 <td className="py-3.5 px-4 text-right">
-                  <Link
-                    href={`/admin/facilities/${o.id}`}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors"
-                  >
+                  <ActionLink href={`/admin/facilities/${o.id}`} pendingLabel="Inspecting…">
                     Inspect <ArrowRight size={13} />
-                  </Link>
+                  </ActionLink>
                 </td>
               </tr>
             );
