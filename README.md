@@ -35,9 +35,14 @@ HemoGrid is an end-to-end emergency blood dispatch and cold-chain safety platfor
 - **Demo video (3 minutes or less)**: *[YouTube unlisted / Google Drive link]*
 - **Live demo**: [https://hemo-grid-frontend.vercel.app](https://hemo-grid-frontend.vercel.app)
 - **Test log-ins**:
-  - **Hospital Staff**: `hospital.demo@hemogrid.local` / `HospitalDemo123!`
-  - **Blood Bank Officer**: `bank.demo@hemogrid.local` / `BankDemo123!`
-  - **Network Admin**: `admin.demo@hemogrid.local` / `AdminDemo123!`
+  - **Hospital Staff (National Referral)**: `hospital.demo@hemogrid.local` / `HospitalDemo123!`
+  - **Blood Bank (Nairobi RBTC - Optimal Match)**: `bank.demo@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Embu RBTC)**: `embu.bank@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Mombasa RBTC)**: `mombasa.bank@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Kisumu RBTC)**: `kisumu.bank@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Nakuru RBTC)**: `nakuru.bank@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Eldoret RBTC)**: `eldoret.bank@hemogrid.local` / `BankDemo123!`
+  - **Network Administrator**: `admin.demo@hemogrid.local` / `AdminDemo123!`
 
 ---
 
