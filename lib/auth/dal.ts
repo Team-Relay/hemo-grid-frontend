@@ -13,6 +13,7 @@ import { redirect } from "next/navigation";
 import type { BackendUser, UserRole } from "@/lib/api/backend-types";
 import { ApiClientError } from "@/lib/api/errors";
 import { getCurrentUser } from "@/lib/api/auth";
+import { optimisticUserFromAccessToken } from "@/lib/auth/optimistic-user";
 import { getAccessToken } from "@/lib/auth/session";
 import { workspacePathForRole } from "@/lib/auth/roles";
 
@@ -21,52 +22,131 @@ export interface VerifiedSession {
   user: BackendUser;
 }
 
+export interface ShellSession extends VerifiedSession {
+  /** True only when identity came from JWT claims because the API was unavailable. */
+  serviceUnavailable: boolean;
+}
+
+type SessionResolution =
+  | { kind: "missing" }
+  | { kind: "invalid" }
+  | { kind: "verified"; session: VerifiedSession }
+  | {
+      kind: "unavailable";
+      accessToken: string;
+      error: ApiClientError;
+      optimisticUser: BackendUser | null;
+    };
+
 /**
- * Resolves a valid session for public entry pages without forcing a redirect.
- * Invalid cookies are treated as signed-out; the next successful login safely
- * replaces them because Server Components cannot mutate response cookies.
+ * Performs at most one `/auth/me` request per server render. Consumers can
+ * then choose strict verification for data or optimistic identity for chrome.
  */
-export const getOptionalSession = cache(async (): Promise<VerifiedSession | null> => {
+const resolveSession = cache(async (): Promise<SessionResolution> => {
   const accessToken = await getAccessToken();
-  if (!accessToken) return null;
+  if (!accessToken) return { kind: "missing" };
 
   try {
     const user = await getCurrentUser(accessToken);
-    return { accessToken, user };
+    return { kind: "verified", session: { accessToken, user } };
   } catch (error) {
-    if (error instanceof ApiClientError && error.status === 401) return null;
+    if (error instanceof ApiClientError && error.status === 401) {
+      return { kind: "invalid" };
+    }
+
+    if (isServiceUnavailable(error)) {
+      return {
+        kind: "unavailable",
+        accessToken,
+        error,
+        optimisticUser: optimisticUserFromAccessToken(accessToken),
+      };
+    }
+
     throw error;
   }
 });
 
-export const verifySession = cache(async (): Promise<VerifiedSession> => {
-  const accessToken = await getAccessToken();
+/**
+ * Resolves identity for public entry pages without forcing a redirect. During
+ * an outage, current JWT claims may restore workspace navigation, but only
+ * strict `verifySession` callers are allowed to request protected data.
+ */
+export async function getOptionalSession(): Promise<ShellSession | null> {
+  const resolution = await resolveSession();
 
-  if (!accessToken) {
+  if (resolution.kind === "verified") {
+    return { ...resolution.session, serviceUnavailable: false };
+  }
+
+  if (resolution.kind === "unavailable" && resolution.optimisticUser) {
+    return {
+      accessToken: resolution.accessToken,
+      user: resolution.optimisticUser,
+      serviceUnavailable: true,
+    };
+  }
+
+  return null;
+}
+
+export const verifySession = cache(async (): Promise<VerifiedSession> => {
+  const resolution = await resolveSession();
+
+  if (resolution.kind === "missing") {
     redirect("/login");
   }
 
-  try {
-    const user = await getCurrentUser(accessToken);
-    return { accessToken, user };
-  } catch (error) {
-    if (error instanceof ApiClientError && error.status === 401) {
-      redirect("/login?reason=session-expired");
-    }
-    throw error;
+  if (resolution.kind === "invalid") {
+    redirect("/login?reason=session-expired");
   }
+
+  if (resolution.kind === "unavailable") throw resolution.error;
+
+  return resolution.session;
 });
 
 /**
- * Requires one of the supplied roles and redirects a valid user back to their
- * own workspace if they attempt to enter another role's route.
+ * Protects workspace chrome. Verified identity is preferred; current JWT
+ * claims are an outage-only presentation fallback and never authorize API use.
  */
-export async function requireRole(allowedRoles: readonly UserRole[]): Promise<VerifiedSession> {
-  const session = await verifySession();
+export async function requireShellRole(allowedRoles: readonly UserRole[]): Promise<ShellSession> {
+  const resolution = await resolveSession();
+
+  if (resolution.kind === "missing") redirect("/login");
+  if (resolution.kind === "invalid") redirect("/login?reason=session-expired");
+
+  if (resolution.kind === "unavailable") {
+    if (!resolution.optimisticUser) {
+      redirect("/login?reason=service-unavailable");
+    }
+
+    if (!allowedRoles.includes(resolution.optimisticUser.role)) {
+      redirect(workspacePathForRole(resolution.optimisticUser.role));
+    }
+
+    return {
+      accessToken: resolution.accessToken,
+      user: resolution.optimisticUser,
+      serviceUnavailable: true,
+    };
+  }
+
+  const session = resolution.session;
 
   if (!allowedRoles.includes(session.user.role)) {
     redirect(workspacePathForRole(session.user.role));
   }
 
-  return session;
+  return { ...session, serviceUnavailable: false };
+}
+
+function isServiceUnavailable(error: unknown): error is ApiClientError {
+  return (
+    error instanceof ApiClientError &&
+    (error.status === 0 ||
+      error.status >= 500 ||
+      error.code === "NETWORK_ERROR" ||
+      error.code === "NETWORK_TIMEOUT")
+  );
 }

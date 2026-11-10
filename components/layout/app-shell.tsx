@@ -1,10 +1,20 @@
-/** Shared authenticated shell with role-aware navigation and verified identity details. */
+/** Shared authenticated shell with role-aware navigation and explicit outage status. */
 
 "use client";
 
-import { Boxes, Building2, CircleGauge, Command, FileHeart, Menu, Network, X } from "lucide-react";
+import {
+  Boxes,
+  Building2,
+  CircleGauge,
+  Command,
+  FileHeart,
+  Menu,
+  Network,
+  WifiOff,
+  X,
+} from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ShellTools } from "@/components/layout/shell-tools";
@@ -99,13 +109,16 @@ export function Wordmark({
 export function AppShell({
   role,
   user,
+  serviceUnavailable = false,
   children,
 }: {
   role: AppRole;
   user: BackendUser;
+  serviceUnavailable?: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const config = {
     ...roleConfig[role],
@@ -170,6 +183,28 @@ export function AppShell({
           <Menu size={19} strokeWidth={1.8} />
         </button>
       </header>
+
+      {serviceUnavailable && (
+        <div
+          className="mx-auto mt-3 flex w-[calc(100%_-_48px)] max-w-[1540px] items-start gap-3 rounded-2xl border border-warning/30 bg-warning-soft/70 px-4 py-3 text-xs text-slate-700"
+          role="status"
+        >
+          <WifiOff size={17} className="mt-0.5 shrink-0 text-warning" />
+          <div className="min-w-0 flex-1">
+            <strong className="block text-ink">Live service temporarily unavailable</strong>
+            <p className="mt-0.5 leading-relaxed">
+              Navigation remains available, but live data and submissions cannot be verified.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="shrink-0 rounded-lg border border-warning/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink hover:bg-warning-soft"
+            onClick={() => router.refresh()}
+          >
+            Retry connection
+          </button>
+        </div>
+      )}
 
       <main className="w-[min(1540px,100%)] mx-auto pt-7 px-[clamp(24px,3.25vw,56px)] pb-12">
         {children}

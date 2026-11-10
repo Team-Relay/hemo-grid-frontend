@@ -1,14 +1,14 @@
-/** Secures the provider route group and supplies verified user data to the shared shell. */
+/** Renders provider chrome while strict data loaders retain backend authorization. */
 
 import { AppShell } from "@/components/layout/app-shell";
-import { requireRole } from "@/lib/auth/dal";
+import { requireShellRole } from "@/lib/auth/dal";
 import { BLOOD_BANK_ROLES } from "@/lib/auth/roles";
 
 export default async function BloodBankLayout({ children }: LayoutProps<"/blood-bank">) {
-  const { user } = await requireRole(BLOOD_BANK_ROLES);
+  const { user, serviceUnavailable } = await requireShellRole(BLOOD_BANK_ROLES);
 
   return (
-    <AppShell role="blood-bank" user={user}>
+    <AppShell role="blood-bank" user={user} serviceUnavailable={serviceUnavailable}>
       {children}
     </AppShell>
   );
