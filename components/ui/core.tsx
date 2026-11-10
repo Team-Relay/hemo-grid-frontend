@@ -384,7 +384,7 @@ export function UrgencyBadge({ urgency }: { urgency: RequestUrgency }) {
   );
 }
 
-export function StockBadge({ health }: { health: StockHealth }) {
+export function StockBadge({ health, className }: { health: StockHealth; className?: string }) {
   const stockClasses: Record<StockHealth, string> = {
     HEALTHY: "text-success bg-success-soft border border-success/20",
     MODERATE: "text-info bg-info-soft border border-info/20",
@@ -397,6 +397,7 @@ export function StockBadge({ health }: { health: StockHealth }) {
       className={cn(
         "w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit",
         stockClasses[health],
+        className,
       )}
     >
       <i className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />

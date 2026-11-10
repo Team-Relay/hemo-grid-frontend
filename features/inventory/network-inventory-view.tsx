@@ -101,26 +101,27 @@ export function NetworkInventoryView() {
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 divide-y sm:divide-y-0 sm:divide-x divide-border">
           {bloodGroups.map((group, index) => {
             const count = networkStock[index];
+            const health = getStockHealth(Math.round(count / 8));
             return (
               <div
                 key={group}
-                className="p-3.5 flex flex-col justify-between hover:bg-surface-muted/50 transition-colors"
+                className="p-3.5 flex flex-col justify-between hover:bg-surface-muted/40 transition-colors"
               >
-                <div className="flex items-center justify-between gap-1">
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-brand-soft border border-brand/20 font-bold text-xs text-brand-dark">
-                    {group}
+                <div className="flex items-center justify-between gap-1 mb-2">
+                  <span className="inline-flex items-center justify-center min-w-[28px] px-1.5 h-6 rounded-md bg-brand-soft border border-brand/20 font-bold text-xs text-brand-dark tabular-nums tracking-tight font-mono shrink-0">
+                    {formatBloodGroup(group)}
                   </span>
-                  <StockBadge health={getStockHealth(Math.round(count / 8))} />
+                  <StockBadge health={health} className="text-[10px] px-2 py-0.5" />
                 </div>
-                <div className="my-1.5">
-                  <strong className="text-xl font-bold tracking-tight text-ink tabular-nums block">
+                <div className="my-1">
+                  <strong className="text-xl sm:text-2xl font-bold tracking-tight text-ink tabular-nums block leading-none">
                     {count}
                   </strong>
-                  <span className="text-[10.5px] text-muted block truncate">
+                  <span className="text-[11px] text-muted block truncate font-medium mt-1">
                     free {formatBloodGroup(group)}
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-400 font-medium">
+                <div className="pt-2 mt-1 border-t border-border/50 text-[10px] text-slate-400 font-medium">
                   {(index % 3) + 4} hubs active
                 </div>
               </div>
