@@ -23,24 +23,33 @@ const availability = [
   { g: "AB+", n: 92, s: "Healthy", p: 62 },
   { g: "AB−", n: 14, s: "Critical", p: 14 },
 ];
+
 export default function AdminDashboard() {
   return (
-    <>
-      <div className="command-head">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Network operations</p>
-          <h1>Command Centre</h1>
-          <p>Real-time availability and emergency fulfilment across the HemoGrid network.</p>
-        </div>
-        <div className="command-live">
-          <span>
-            <i />
-            Live network
+          <span className="text-[11px] font-bold text-brand uppercase tracking-wider block mb-1">
+            Network Operations
           </span>
-          <small>Last synchronized just now</small>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
+            Command Centre
+          </h1>
+          <p className="text-xs sm:text-sm text-muted mt-1 max-w-xl">
+            Real-time availability and emergency fulfilment oversight across the HemoGrid regional network.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-border shadow-sm">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-semibold text-ink">Live Network Telemetry</span>
+          <span className="text-[11px] text-muted border-l border-border pl-2">Sync: Just now</span>
         </div>
       </div>
-      <div className="stats-grid admin-stats">
+
+      {/* KPI Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <StatCard label="Participating facilities" value="18" detail="17 online" icon={Building2} />
         <StatCard
           label="Total free units"
@@ -58,94 +67,142 @@ export default function AdminDashboard() {
         />
         <StatCard label="Active transfers" value="7" detail="3 arriving soon" icon={Route} />
       </div>
-      <div className="admin-grid">
+
+      {/* Main Grid: Network Map & Availability Stack */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5 items-start">
         <NetworkMap />
-        <div className="detail-stack">
-          <Panel className="availability-panel">
+
+        <div className="space-y-5">
+          {/* Blood Availability Panel */}
+          <Panel className="p-6">
             <SectionHeader
               title="Blood availability"
-              description="Free units across all connected facilities"
+              description="Free screened units across all connected facilities"
               action={
-                <Link href="/admin/inventory" className="text-link">
+                <Link
+                  href="/admin/inventory"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors"
+                >
                   Inspect <ArrowRight size={12} />
                 </Link>
               }
             />
-            <div className="availability-grid">
-              {availability.map((item) => (
-                <div className="availability-item" key={item.g}>
-                  <strong>{item.g}</strong>
-                  <div>
-                    <span>
-                      <b>{item.n}</b> units
-                    </span>
-                    <div className="availability-track">
-                      <i
-                        className={`availability-${item.s.toLowerCase()}`}
-                        style={{ width: `${item.p}%` }}
-                      />
+            <div className="grid grid-cols-2 gap-2.5 mt-4">
+              {availability.map((item) => {
+                const isCritical = item.s === "Critical";
+                const isLow = item.s === "Low";
+                const isModerate = item.s === "Moderate";
+                return (
+                  <div
+                    key={item.g}
+                    className="p-3 rounded-xl bg-surface-muted border border-border flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-lg bg-brand-soft border border-brand/20 grid place-items-center font-bold text-brand-dark text-xs">
+                        {item.g}
+                      </span>
+                      <div>
+                        <strong className="block text-xs font-bold text-ink">{item.n} units</strong>
+                        <span className="text-[10px] text-muted">Available</span>
+                      </div>
                     </div>
+
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                        isCritical
+                          ? "bg-critical-soft text-critical border border-critical/30"
+                          : isLow
+                            ? "bg-warning-soft text-warning border border-warning/30"
+                            : isModerate
+                              ? "bg-info-soft text-info border border-info/30"
+                              : "bg-success-soft text-success border border-success/30"
+                      }`}
+                    >
+                      {item.s}
+                    </span>
                   </div>
-                  <small className={`availability-text-${item.s.toLowerCase()}`}>{item.s}</small>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Panel>
-          <Panel className="alerts-panel">
+
+          {/* Stock Alerts Panel */}
+          <Panel className="p-6">
             <SectionHeader
               title="Critical stock alerts"
-              description="Conditions requiring network attention"
+              description="Conditions requiring regional dispatch attention"
             />
-            <div className="alert-list">
-              <div>
-                <span className="alert-icon critical">
-                  <AlertTriangle size={15} />
+            <div className="space-y-2.5 mt-4">
+              <div className="p-3.5 rounded-xl bg-critical-soft/40 border border-critical/30 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-critical-soft text-critical grid place-items-center shrink-0">
+                    <AlertTriangle size={15} />
+                  </div>
+                  <div>
+                    <strong className="block font-bold text-ink">AB− Whole Blood</strong>
+                    <span className="text-[11px] text-muted">14 units across 2 facilities</span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-critical text-white uppercase tracking-wider">
+                  Critical
                 </span>
-                <p>
-                  <strong>AB− Whole Blood</strong>
-                  <small>14 units across 2 facilities</small>
-                </p>
-                <b>Critical</b>
               </div>
-              <div>
-                <span className="alert-icon warning">
-                  <Radio size={15} />
+
+              <div className="p-3.5 rounded-xl bg-warning-soft/40 border border-warning/30 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-warning-soft text-warning grid place-items-center shrink-0">
+                    <Radio size={15} />
+                  </div>
+                  <div>
+                    <strong className="block font-bold text-ink">O− Red Cells</strong>
+                    <span className="text-[11px] text-muted">31 units · demand elevated</span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-warning text-white uppercase tracking-wider">
+                  Low Stock
                 </span>
-                <p>
-                  <strong>O− Red Cells</strong>
-                  <small>31 units · demand elevated</small>
-                </p>
-                <b>Low</b>
               </div>
             </div>
           </Panel>
         </div>
       </div>
-      <Panel className="network-activity">
+
+      {/* Bottom Network Activity Row */}
+      <Panel className="p-6">
         <SectionHeader
           title="Recent network activity"
           description="Operational events across all participating facilities"
           action={
-            <Link href="/admin/requests" className="text-link">
+            <Link
+              href="/admin/requests"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors"
+            >
               All requests <ArrowRight size={12} />
             </Link>
           }
         />
-        <div className="activity-row">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mt-4">
           {activities.map((item) => (
-            <div className="activity-card" key={item.id}>
-              <span className={`activity-dot ${item.tone}`}>
-                <Activity size={13} />
-              </span>
-              <div>
-                <strong>{item.title}</strong>
-                <p>{item.detail}</p>
-                <small>{item.timestamp}</small>
+            <div
+              key={item.id}
+              className="p-4 rounded-2xl bg-white border border-border shadow-sm flex flex-col justify-between"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-brand-soft text-brand-dark grid place-items-center shrink-0 mt-0.5">
+                  <Activity size={14} />
+                </div>
+                <div className="min-w-0">
+                  <strong className="block text-xs font-bold text-ink truncate">{item.title}</strong>
+                  <p className="text-[11px] text-muted line-clamp-2 mt-1 leading-relaxed">{item.detail}</p>
+                </div>
+              </div>
+              <div className="pt-3 mt-3 border-t border-border text-[10.5px] text-muted">
+                {item.timestamp}
               </div>
             </div>
           ))}
         </div>
       </Panel>
-    </>
+    </div>
   );
 }

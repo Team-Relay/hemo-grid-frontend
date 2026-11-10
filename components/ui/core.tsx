@@ -146,19 +146,19 @@ export function StatCard({
 
 export function StatusBadge({ status }: { status: BloodRequestStatus }) {
   const statusClasses: Record<BloodRequestStatus, string> = {
-    REQUESTED: "text-info bg-info-soft",
-    ACCEPTED: "text-[#07845a] bg-success-soft",
-    PREPARING: "text-[#7655c6] bg-[#f1ecff]",
-    IN_TRANSIT: "text-brand bg-brand-soft",
-    DELIVERED: "text-success bg-success-soft",
-    DECLINED: "text-critical bg-critical-soft",
-    CANCELLED: "text-muted bg-[#eef1f0]",
-    EXPIRED: "text-muted bg-[#eef1f0]"
+    REQUESTED: "text-info bg-info-soft border border-info/20",
+    ACCEPTED: "text-[#07845a] bg-success-soft border border-success/20",
+    PREPARING: "text-[#7655c6] bg-[#f1ecff] border border-brand/20",
+    IN_TRANSIT: "text-brand bg-brand-soft border border-brand/20",
+    DELIVERED: "text-success bg-success-soft border border-success/20",
+    DECLINED: "text-critical bg-critical-soft border border-critical/20",
+    CANCELLED: "text-muted bg-[#eef1f0] border border-border",
+    EXPIRED: "text-muted bg-[#eef1f0] border border-border"
   };
 
   return (
-    <span className={cn("w-max inline-flex items-center gap-1.5 px-2 py-[5px] rounded-full text-[10.5px] font-semibold whitespace-nowrap", statusClasses[status])}>
-      <i className="w-[5px] h-[5px] rounded-full bg-current" />
+    <span className={cn("w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit", statusClasses[status])}>
+      <i className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />
       {formatStatus(status)}
     </span>
   );
@@ -166,14 +166,14 @@ export function StatusBadge({ status }: { status: BloodRequestStatus }) {
 
 export function UrgencyBadge({ urgency }: { urgency: RequestUrgency }) {
   const urgencyClasses: Record<RequestUrgency, string> = {
-    ROUTINE: "text-muted bg-[#eef1f0]",
-    URGENT: "text-warning bg-warning-soft",
-    CRITICAL: "text-critical bg-critical-soft"
+    ROUTINE: "text-muted bg-[#eef1f0] border border-border",
+    URGENT: "text-warning bg-warning-soft border border-warning/20",
+    CRITICAL: "text-critical bg-critical-soft border border-critical/20"
   };
 
   return (
-    <span className={cn("w-max inline-flex items-center gap-1.5 px-2 py-[5px] rounded-full text-[10.5px] font-semibold whitespace-nowrap", urgencyClasses[urgency])}>
-      <i className="w-[5px] h-[5px] rounded-full bg-current" />
+    <span className={cn("w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit", urgencyClasses[urgency])}>
+      <i className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />
       {formatUrgency(urgency)}
     </span>
   );
@@ -181,15 +181,15 @@ export function UrgencyBadge({ urgency }: { urgency: RequestUrgency }) {
 
 export function StockBadge({ health }: { health: StockHealth }) {
   const stockClasses: Record<StockHealth, string> = {
-    HEALTHY: "text-success bg-success-soft",
-    MODERATE: "text-info bg-info-soft",
-    LOW: "text-warning bg-warning-soft",
-    CRITICAL: "text-critical bg-critical-soft"
+    HEALTHY: "text-success bg-success-soft border border-success/20",
+    MODERATE: "text-info bg-info-soft border border-info/20",
+    LOW: "text-warning bg-warning-soft border border-warning/20",
+    CRITICAL: "text-critical bg-critical-soft border border-critical/20"
   };
 
   return (
-    <span className={cn("w-max inline-flex items-center gap-1.5 px-2 py-[5px] rounded-full text-[10.5px] font-semibold whitespace-nowrap", stockClasses[health])}>
-      <i className="w-[5px] h-[5px] rounded-full bg-current" />
+    <span className={cn("w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit", stockClasses[health])}>
+      <i className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />
       {health.charAt(0) + health.slice(1).toLowerCase()}
     </span>
   );

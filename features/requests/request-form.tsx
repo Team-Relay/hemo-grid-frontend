@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Minus, Plus, Search } from "lucide-react";
+import {
+  Activity,
+  AlertCircle,
+  Check,
+  Minus,
+  Plus,
+  Search,
+  ShieldAlert,
+} from "lucide-react";
 import {
   bloodComponents,
   bloodGroups,
@@ -14,6 +22,7 @@ import type { BloodComponent, BloodGroup, RequestUrgency } from "@/types/domain"
 import { Button, cn, PageHeader, Panel } from "@/components/ui/core";
 
 const urgencies: RequestUrgency[] = ["ROUTINE", "URGENT", "CRITICAL"];
+
 export function RequestForm() {
   const router = useRouter();
   const [group, setGroup] = useState<BloodGroup>("O_NEGATIVE");
@@ -24,80 +33,138 @@ export function RequestForm() {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [leaving, setLeaving] = useState(false);
+
   function submit(event: React.FormEvent) {
     event.preventDefault();
     if (units < 1) return;
     setSubmitting(true);
-    window.setTimeout(() => router.push("/hospital/requests/req-0142/matches"), 700);
+    window.setTimeout(() => router.push("/hospital/requests/req-0142/matches"), 650);
   }
+
   return (
-    <div className="form-page">
+    <div className="space-y-6 max-w-4xl mx-auto">
       <PageHeader
         backHref="/hospital/requests"
-        eyebrow="Emergency fulfilment"
+        eyebrow="Emergency Fulfilment"
         title="Create blood request"
-        description="Enter the exact blood group and component required. HemoGrid will search verified network inventory."
+        description="Enter the exact blood group and component required. HemoGrid will instantly calculate matching network inventory and travel distance."
       />
-      <form onSubmit={submit}>
-        <Panel className="form-panel">
-          <div className="form-section">
-            <div className="form-section-head">
-              <div>
-                <h2>Blood group</h2>
-                <p>
-                  Select the exact group requested. Compatibility substitutions are not suggested.
-                </p>
-              </div>
-              <div className="choice-grid">
-                {bloodGroups.map((value) => (
+
+      <form onSubmit={submit} className="space-y-6">
+        <Panel className="p-6 sm:p-8 space-y-8 shadow-sm">
+          {/* Section 1: Blood Group Selection */}
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-base font-bold text-ink tracking-tight">1. Target Blood Group</h2>
+              <p className="text-xs text-muted mt-0.5">
+                Select the exact group requested. Cross-match compatibility protocols will search exact screened units.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {bloodGroups.map((value) => {
+                const isSelected = value === group;
+                const isPositive = value.includes("POSITIVE");
+                return (
                   <button
                     key={value}
                     type="button"
                     onClick={() => setGroup(value)}
-                    className={cn("choice-card", value === group && "active")}
+                    className={cn(
+                      "p-3.5 rounded-2xl border text-left transition-all duration-150 relative flex items-center justify-between",
+                      isSelected
+                        ? "bg-brand-soft border-brand text-brand-dark shadow-[0_2px_8px_rgba(108,92,231,0.12)] ring-1 ring-brand"
+                        : "bg-surface-muted border-border text-slate-700 hover:border-border-strong hover:bg-white"
+                    )}
                   >
-                    <strong>{formatBloodGroup(value)}</strong>
-                    <small>{value.includes("POSITIVE") ? "Positive" : "Negative"}</small>
+                    <div>
+                      <strong className="block text-base font-bold tracking-tight">
+                        {formatBloodGroup(value)}
+                      </strong>
+                      <span className="text-[10.5px] text-muted font-medium">
+                        {isPositive ? "Rh Positive (+)" : "Rh Negative (−)"}
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <span className="w-5 h-5 rounded-full bg-brand text-white grid place-items-center shrink-0 shadow-sm">
+                        <Check size={11} strokeWidth={3} />
+                      </span>
+                    )}
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
-          <div className="form-section">
-            <div className="form-section-head">
-              <div>
-                <h2>Blood component</h2>
-                <p>Inventory matching uses the exact selected component.</p>
-              </div>
-              <div className="choice-grid">
-                {bloodComponents.map((value) => (
+
+          <hr className="border-border" />
+
+          {/* Section 2: Blood Component */}
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-base font-bold text-ink tracking-tight">2. Component Requirement</h2>
+              <p className="text-xs text-muted mt-0.5">
+                Inventory matching uses the exact selected component preparation.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {bloodComponents.map((value) => {
+                const isSelected = value === component;
+                return (
                   <button
                     key={value}
                     type="button"
                     onClick={() => setComponent(value)}
-                    className={cn("choice-card", value === component && "active")}
+                    className={cn(
+                      "p-3.5 rounded-2xl border text-left transition-all duration-150 relative flex items-center justify-between",
+                      isSelected
+                        ? "bg-brand-soft border-brand text-brand-dark shadow-[0_2px_8px_rgba(108,92,231,0.12)] ring-1 ring-brand"
+                        : "bg-surface-muted border-border text-slate-700 hover:border-border-strong hover:bg-white"
+                    )}
                   >
-                    <strong>{formatComponent(value)}</strong>
-                    <small>Screened inventory</small>
+                    <div>
+                      <strong className="block text-xs sm:text-[13px] font-bold tracking-tight">
+                        {formatComponent(value)}
+                      </strong>
+                      <span className="text-[10.5px] text-muted font-medium">
+                        Screened Stock
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <span className="w-5 h-5 rounded-full bg-brand text-white grid place-items-center shrink-0 shadow-sm">
+                        <Check size={11} strokeWidth={3} />
+                      </span>
+                    )}
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
-          <div className="form-section">
-            <div className="form-section-head">
+
+          <hr className="border-border" />
+
+          {/* Section 3: Quantity & Urgency */}
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-base font-bold text-ink tracking-tight">3. Units & Priority Level</h2>
+              <p className="text-xs text-muted mt-0.5">
+                Specify the required quantity and urgency for regional dispatch routing.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
+              {/* Units Stepper */}
               <div>
-                <h2>Quantity & urgency</h2>
-                <p>Set the units required and the operational priority.</p>
-              </div>
-              <div className="field-grid">
-                <div className="field">
-                  <span className="field-label">Units required</span>
-                  <div className="stepper">
+                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                  Units Required (Bags)
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border border-border-strong rounded-2xl bg-white p-1 shadow-sm">
                     <button
                       type="button"
                       onClick={() => setUnits(Math.max(1, units - 1))}
                       aria-label="Decrease units"
+                      className="w-10 h-10 rounded-xl grid place-items-center text-slate-600 hover:bg-surface-muted hover:text-ink transition-colors"
                     >
                       <Minus size={16} />
                     </button>
@@ -107,90 +174,115 @@ export function RequestForm() {
                       value={units}
                       onChange={(e) => setUnits(Math.max(1, Number(e.target.value)))}
                       aria-label="Units required"
+                      className="w-16 h-10 text-center font-bold text-lg text-ink focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <button
                       type="button"
                       onClick={() => setUnits(units + 1)}
                       aria-label="Increase units"
+                      className="w-10 h-10 rounded-xl grid place-items-center text-slate-600 hover:bg-surface-muted hover:text-ink transition-colors"
                     >
                       <Plus size={16} />
                     </button>
                   </div>
-                  <span className="field-hint">Minimum 1 unit</span>
+                  <span className="text-xs text-muted">Minimum 1 unit</span>
                 </div>
-                <div className="field">
-                  <span className="field-label">Urgency</span>
-                  <div className="urgency-choices">
-                    {urgencies.map((value) => (
+              </div>
+
+              {/* Urgency Choices */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                  Operational Urgency
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {urgencies.map((value) => {
+                    const isSelected = value === urgency;
+                    const isCritical = value === "CRITICAL";
+                    const isUrgent = value === "URGENT";
+                    return (
                       <button
                         key={value}
                         type="button"
                         onClick={() => setUrgency(value)}
                         className={cn(
-                          "urgency-choice",
-                          `urgency-option-${value.toLowerCase()}`,
-                          value === urgency && "active",
+                          "h-11 px-3 rounded-xl border text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5",
+                          isSelected
+                            ? isCritical
+                              ? "bg-critical text-white border-critical shadow-sm"
+                              : isUrgent
+                                ? "bg-amber-600 text-white border-amber-600 shadow-sm"
+                                : "bg-ink text-white border-ink shadow-sm"
+                            : "bg-surface-muted border-border text-slate-700 hover:bg-white hover:border-border-strong"
                         )}
                       >
+                        {isCritical && <ShieldAlert size={13} />}
                         {formatUrgency(value)}
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
           </div>
-          <div className="form-section">
-            <div className="form-section-head">
+
+          <hr className="border-border" />
+
+          {/* Section 4: Context & Reference */}
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-base font-bold text-ink tracking-tight">4. Clinical & Logistics Context</h2>
+              <p className="text-xs text-muted mt-0.5">
+                Internal reference identifiers for your emergency department and dispatchers.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <h2>Request context</h2>
-                <p>
-                  Add references that help your team identify this request. Clinical details are
-                  optional.
-                </p>
+                <label htmlFor="clinical-ref" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Clinical Reference / ER Ticket <span className="text-muted font-normal">(optional)</span>
+                </label>
+                <input
+                  id="clinical-ref"
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  placeholder="e.g. ER-88219"
+                  className="w-full h-11 px-4 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+                />
               </div>
-              <div className="field-grid">
-                <div className="field">
-                  <label htmlFor="clinical-ref">
-                    Clinical reference <span>(optional)</span>
-                  </label>
-                  <input
-                    id="clinical-ref"
-                    value={reference}
-                    onChange={(e) => setReference(e.target.value)}
-                    placeholder="e.g. ER-88219"
-                  />
-                </div>
-                <div className="field field-full">
-                  <label htmlFor="notes">
-                    Operational notes <span>(optional)</span>
-                  </label>
-                  <textarea
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Collection constraints or coordinator notes"
-                    maxLength={300}
-                  />
-                  <span className="field-hint">{notes.length}/300 characters</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="form-section">
-            <div className="inline-alert">
-              <AlertCircle size={18} />
+
               <div>
-                <strong>Request summary</strong>
-                <p>
-                  {units} unit{units === 1 ? "" : "s"} of {formatBloodGroup(group)}{" "}
-                  {formatComponent(component).toLowerCase()} · {formatUrgency(urgency)}. The network
-                  search checks exact inventory availability and distance.
-                </p>
+                <label htmlFor="notes" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Operational Notes <span className="text-muted font-normal">(optional)</span>
+                </label>
+                <textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Urgent surgery scheduled at 17:00, cold-chain box required"
+                  maxLength={300}
+                  rows={2}
+                  className="w-full p-3 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none"
+                />
+                <span className="text-[10.5px] text-muted block text-right mt-1">
+                  {notes.length}/300 characters
+                </span>
               </div>
             </div>
           </div>
-          <div className="form-footer">
+
+          {/* Summary Alert Banner */}
+          <div className="p-4 rounded-2xl bg-brand-soft/70 border border-brand/20 flex items-start gap-3 text-xs">
+            <AlertCircle size={18} className="text-brand shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-bold text-brand-dark block text-xs">Request Validation Summary</strong>
+              <p className="text-slate-700 text-[11.5px] mt-0.5 leading-relaxed">
+                Searching for <strong>{units} unit{units === 1 ? "" : "s"}</strong> of <strong>{formatBloodGroup(group)}</strong> ({formatComponent(component)}) with <strong>{formatUrgency(urgency)}</strong> dispatch status. Real-time corridor routing will evaluate 18 connected blood banks for immediate supply.
+              </p>
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <Button
               type="button"
               variant="secondary"
@@ -207,7 +299,7 @@ export function RequestForm() {
             <Button
               type="submit"
               isLoading={submitting}
-              loadingText="Searching network…"
+              loadingText="Matching network inventory…"
               disabled={leaving}
             >
               <Search size={15} />
