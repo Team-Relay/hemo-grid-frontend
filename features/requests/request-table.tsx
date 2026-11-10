@@ -1,3 +1,5 @@
+/** Filterable request table that consumes mapped domain models rather than backend DTOs. */
+
 "use client";
 
 import Link from "next/link";

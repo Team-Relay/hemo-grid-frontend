@@ -1,3 +1,5 @@
+/** Existing network-map prototype; facility telemetry remains local until a network API exists. */
+
 import { ArrowRight, Building2, MapPin, Radio } from "lucide-react";
 import { NetworkMap } from "@/components/network/network-map";
 import { ButtonLink, PageHeader, Panel } from "@/components/ui/core";
@@ -24,7 +26,9 @@ export default function HospitalNetworkPage() {
           <div className="flex items-center justify-between pb-3 border-b border-border">
             <div>
               <h2 className="text-base font-bold text-ink">Connected Fulfilment Hubs</h2>
-              <p className="text-xs text-muted mt-0.5">Real-time facility telemetry and distance matrix</p>
+              <p className="text-xs text-muted mt-0.5">
+                Real-time facility telemetry and distance matrix
+              </p>
             </div>
             <span className="flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
               <Radio size={13} className="animate-pulse" /> Live Telemetry
@@ -60,7 +64,9 @@ export default function HospitalNetworkPage() {
                         : "bg-success-soft text-success border border-success/20"
                     }`}
                   >
-                    <i className={`w-1.5 h-1.5 rounded-full ${isDegraded ? "bg-amber-500" : "bg-emerald-500"}`} />
+                    <i
+                      className={`w-1.5 h-1.5 rounded-full ${isDegraded ? "bg-amber-500" : "bg-emerald-500"}`}
+                    />
                     {isDegraded ? "Degraded" : "Online"}
                   </span>
                 </div>

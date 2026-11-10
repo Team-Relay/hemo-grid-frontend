@@ -1,3 +1,5 @@
+/** Renders ranked real candidates and prevents selection when one bank cannot fulfil all units. */
+
 "use client";
 
 import { useActionState } from "react";

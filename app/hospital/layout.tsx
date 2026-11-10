@@ -1,3 +1,5 @@
+/** Secures the hospital route group and passes verified identity into the application shell. */
+
 import { AppShell } from "@/components/layout/app-shell";
 import { requireRole } from "@/lib/auth/dal";
 import { HOSPITAL_ROLES } from "@/lib/auth/roles";

@@ -1,3 +1,5 @@
+/** Generic shell-compatible skeleton for route segments without a specialized loader. */
+
 export function RouteLoading() {
   return (
     <div className="route-loading" role="status" aria-label="Loading workspace">

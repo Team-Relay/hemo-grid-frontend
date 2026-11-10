@@ -1,11 +1,17 @@
+/** Live inventory route for the authenticated blood-bank organization. */
+
 import { Boxes } from "lucide-react";
 import { ButtonLink, PageHeader } from "@/components/ui/core";
 import { InventoryTable } from "@/features/inventory/inventory-table";
-export default function InventoryPage() {
+import { getProviderInventoryData } from "@/lib/data/provider";
+
+export default async function InventoryPage() {
+  const { organization, inventory } = await getProviderInventoryData();
+
   return (
     <>
       <PageHeader
-        eyebrow="Maitama Blood Centre"
+        eyebrow={organization.name}
         title="Inventory"
         description="Manage screened blood stock, reservations and free availability."
         action={
@@ -15,7 +21,7 @@ export default function InventoryPage() {
           </ButtonLink>
         }
       />
-      <InventoryTable />
+      <InventoryTable items={inventory} />
     </>
   );
 }

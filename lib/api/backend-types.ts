@@ -120,4 +120,5 @@ export interface BackendInventoryItem {
   unitsAvailable: number;
   unitsReserved: number;
   unitsFree: number;
+  updatedAt: string;
 }

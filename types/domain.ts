@@ -1,3 +1,5 @@
+/** UI-facing domain contracts kept independent from Spring Boot transport DTOs. */
+
 export type BloodGroup =
   | "A_POSITIVE"
   | "A_NEGATIVE"

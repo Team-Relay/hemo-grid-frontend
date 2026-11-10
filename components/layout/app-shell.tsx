@@ -1,3 +1,5 @@
+/** Shared authenticated shell with role-aware navigation and verified identity details. */
+
 "use client";
 
 import { Boxes, Building2, CircleGauge, Command, FileHeart, Menu, Network, X } from "lucide-react";

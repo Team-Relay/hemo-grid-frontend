@@ -1,3 +1,5 @@
+/** Presentational recovery form retained until the backend exposes a reset-password contract. */
+
 "use client";
 
 import { ArrowLeft, CheckCircle2, Lock, Mail, ShieldCheck } from "lucide-react";
@@ -43,7 +45,11 @@ export function ForgotPasswordForm() {
       <section className="w-full max-w-md mx-auto my-auto bg-white border border-border rounded-3xl p-8 sm:p-9 shadow-2xl text-ink space-y-6">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl bg-brand-soft border border-brand/20 grid place-items-center text-brand shrink-0">
-            {submitted ? <CheckCircle2 size={20} className="text-emerald-600" /> : <Lock size={20} />}
+            {submitted ? (
+              <CheckCircle2 size={20} className="text-emerald-600" />
+            ) : (
+              <Lock size={20} />
+            )}
           </div>
           <div>
             <span className="text-[10.5px] font-bold text-brand uppercase tracking-wider block">
@@ -64,7 +70,10 @@ export function ForgotPasswordForm() {
         {!submitted ? (
           <form onSubmit={submit} noValidate className="space-y-4">
             <div>
-              <label htmlFor="recovery-email" className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label
+                htmlFor="recovery-email"
+                className="block text-xs font-semibold text-slate-700 mb-1.5"
+              >
                 Work Email Address
               </label>
               <div className="relative flex items-center">
@@ -87,12 +96,22 @@ export function ForgotPasswordForm() {
               )}
             </div>
 
-            <Button type="submit" isLoading={submitting} loadingText="Verifying account…" className="w-full h-11 text-xs">
+            <Button
+              type="submit"
+              isLoading={submitting}
+              loadingText="Verifying account…"
+              className="w-full h-11 text-xs"
+            >
               Send recovery instructions
             </Button>
           </form>
         ) : (
-          <Button type="button" variant="secondary" onClick={() => setSubmitted(false)} className="w-full h-11 text-xs">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setSubmitted(false)}
+            className="w-full h-11 text-xs"
+          >
             Use another work email
           </Button>
         )}

@@ -1,3 +1,5 @@
+/** Navigation link that exposes an immediate pending state during App Router transitions. */
+
 "use client";
 
 import { LoaderCircle } from "lucide-react";

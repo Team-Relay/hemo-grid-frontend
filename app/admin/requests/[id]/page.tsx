@@ -1,3 +1,5 @@
+/** Displays the administrative request-detail prototype until platform APIs are implemented. */
+
 import { PageHeader, Panel, SectionHeader } from "@/components/ui/core";
 import {
   MetadataCard,
@@ -45,11 +47,15 @@ export default async function AdminRequestDetail({ params }: PageProps<"/admin/r
                 </div>
                 <div className="flex justify-between gap-5 py-3 border-b border-[#edf1ef] last:border-0 last:pb-0">
                   <span className="text-muted text-[11px]">Audit ID</span>
-                  <strong className="text-[11.5px] text-right inline-flex items-center justify-end gap-[5px]">req_audit_0142_xx99</strong>
+                  <strong className="text-[11.5px] text-right inline-flex items-center justify-end gap-[5px]">
+                    req_audit_0142_xx99
+                  </strong>
                 </div>
                 <div className="flex justify-between gap-5 py-3 border-b border-[#edf1ef] last:border-0 last:pb-0">
                   <span className="text-muted text-[11px]">Flagged</span>
-                  <strong className="text-[11.5px] text-right inline-flex items-center justify-end gap-[5px]">No anomalies</strong>
+                  <strong className="text-[11.5px] text-right inline-flex items-center justify-end gap-[5px]">
+                    No anomalies
+                  </strong>
                 </div>
               </div>
             </div>

@@ -1,3 +1,5 @@
+/** Displays the administrative request-list prototype with its demo-data disclosure. */
+
 import { PageHeader } from "@/components/ui/core";
 import { RequestTable } from "@/features/requests/request-table";
 import { bloodRequests } from "@/lib/mock/data";

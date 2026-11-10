@@ -1,3 +1,5 @@
+/** Request-detail skeleton shown while the authenticated server read is pending. */
+
 import { PageHeader, Panel, SkeletonRows } from "@/components/ui/core";
 
 export default function RequestDetailLoading() {

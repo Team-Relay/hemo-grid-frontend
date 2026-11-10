@@ -1,6 +1,7 @@
+/** Loads real ranked provider candidates for a hospital request after validating its UUID. */
+
 import { notFound, redirect } from "next/navigation";
-import { CheckCircle2, Clock3, MapPin, Network, ShieldCheck, XCircle } from "lucide-react";
-import { z } from "zod";
+import { CheckCircle2, MapPin, Network, ShieldCheck, XCircle } from "lucide-react";
 
 import {
   BloodBadge,
@@ -14,13 +15,14 @@ import { ProviderSelection } from "@/features/requests/provider-selection";
 import { ApiClientError } from "@/lib/api/errors";
 import { getHospitalRequestMatches } from "@/lib/data/hospital";
 import { formatBloodGroup, formatComponent } from "@/lib/domain";
+import { requestIdSchema } from "@/lib/validation/blood-request";
 import type { Candidate } from "@/types/domain";
 
 export default async function MatchesPage({
   params,
 }: PageProps<"/hospital/requests/[id]/matches">) {
   const { id } = await params;
-  if (!z.uuid().safeParse(id).success) notFound();
+  if (!requestIdSchema.safeParse(id).success) notFound();
 
   let data;
   try {
@@ -55,9 +57,9 @@ export default async function MatchesPage({
             </span>
             <strong className="mt-5 text-base text-ink">Candidate distance ranking</strong>
             <p className="mt-2 max-w-[420px] text-xs leading-6 text-muted">
-              The backend ranked {candidates.length} candidate{candidates.length === 1 ? "" : "s"}{" "}
-              using live free inventory and facility coordinates. Exact map coordinates are not
-              exposed by the current API, so no simulated marker positions are displayed.
+              HemoGrid ranked {candidates.length} candidate{candidates.length === 1 ? "" : "s"}{" "}
+              using current free inventory and verified distance data. Review the available
+              facilities and confirm one that can fulfil the complete request.
             </p>
           </div>
         </Panel>
@@ -77,7 +79,7 @@ export default async function MatchesPage({
                 <p className="text-xs text-muted flex items-center gap-1 mt-1">
                   <MapPin size={13} className="text-brand" />
                   {best.distanceKm === undefined
-                    ? "Distance unavailable"
+                    ? "Distance pending verification"
                     : `${best.distanceKm} km straight-line distance`}
                 </p>
               </div>
@@ -111,7 +113,7 @@ export default async function MatchesPage({
                   Full Request Capacity Verified
                 </strong>
                 <span className="text-emerald-700 text-[11px] block mt-0.5">
-                  The latest candidate snapshot can fulfil all {request.units} requested units.
+                  Current availability can fulfil all {request.units} requested units.
                 </span>
               </div>
             </div>
@@ -124,7 +126,7 @@ export default async function MatchesPage({
                 variant="primary"
               />
               <p className="text-[10.5px] text-muted text-center">
-                The backend rechecks provider eligibility before confirming selection.
+                Availability is verified again when you confirm this provider.
               </p>
             </div>
           </Panel>
@@ -162,7 +164,6 @@ export default async function MatchesPage({
                 <th className="py-3 px-4">Facility Name</th>
                 <th className="py-3 px-4">Free Stock</th>
                 <th className="py-3 px-4">Distance</th>
-                <th className="py-3 px-4">Travel Estimate</th>
                 <th className="py-3 px-4">Match Status</th>
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
@@ -180,9 +181,6 @@ export default async function MatchesPage({
                     <strong className="block font-bold text-ink text-[13px]">
                       {candidate.organizationName}
                     </strong>
-                    <span className="text-[11px] text-muted block mt-0.5">
-                      Location details unavailable
-                    </span>
                   </td>
                   <td className="py-3.5 px-4 font-bold text-ink tabular-nums">
                     {candidate.unitsFree}{" "}
@@ -190,11 +188,6 @@ export default async function MatchesPage({
                   </td>
                   <td className="py-3.5 px-4 text-slate-700 font-medium">
                     {formatDistance(candidate)}
-                  </td>
-                  <td className="py-3.5 px-4 text-muted font-medium">
-                    <span className="inline-flex items-center gap-1">
-                      <Clock3 size={13} /> Not provided by API
-                    </span>
                   </td>
                   <td className="py-3.5 px-4">
                     {candidate.canFullyFulfil ? (
@@ -215,7 +208,7 @@ export default async function MatchesPage({
                         units={request.units}
                       />
                     ) : (
-                      <span className="text-muted text-[11px] italic">Unavailable</span>
+                      <span className="text-muted text-[11px] italic">Not eligible</span>
                     )}
                   </td>
                 </tr>

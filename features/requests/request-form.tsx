@@ -1,3 +1,5 @@
+/** Multi-step hospital request form with shared validation and pending/error feedback. */
+
 "use client";
 
 import { useActionState, useState } from "react";

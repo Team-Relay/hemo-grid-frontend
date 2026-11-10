@@ -1,3 +1,5 @@
+/** Secures the provider route group and supplies verified user data to the shared shell. */
+
 import { AppShell } from "@/components/layout/app-shell";
 import { requireRole } from "@/lib/auth/dal";
 import { BLOOD_BANK_ROLES } from "@/lib/auth/roles";

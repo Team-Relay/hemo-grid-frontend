@@ -1,3 +1,6 @@
-# Server-only URL used by Next.js to reach Spring Boot.
+# Server-only URL used by Next.js to reach Spring Boot. Do not rename this to
+# NEXT_PUBLIC_HEMOGRID_API_URL: bearer tokens and API calls stay on the server.
 HEMOGRID_API_URL=http://localhost:8080/api/v1
 
+# Browser tests target an already-running frontend and backend.
+PLAYWRIGHT_BASE_URL=http://localhost:3000

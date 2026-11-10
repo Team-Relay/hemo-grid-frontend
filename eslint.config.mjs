@@ -1,3 +1,5 @@
+/** Next.js core-vitals and TypeScript lint policy for application and test code. */
+
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";

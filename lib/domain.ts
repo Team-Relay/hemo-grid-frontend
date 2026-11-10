@@ -1,3 +1,5 @@
+/** Presentation helpers for blood labels, lifecycle labels, and stock-health derivation. */
+
 import type {
   BloodComponent,
   BloodGroup,

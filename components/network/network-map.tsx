@@ -1,3 +1,5 @@
+/** Accessible interactive visualization for the current local network demonstration dataset. */
+
 "use client";
 
 import { Building2, Cross, LocateFixed, MapPin, Minus, Plus } from "lucide-react";

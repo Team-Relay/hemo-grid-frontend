@@ -1,5 +1,6 @@
+/** Loads one hospital-owned request and delegates lifecycle rendering to the detail view. */
+
 import { notFound } from "next/navigation";
-import { z } from "zod";
 
 import { PageHeader } from "@/components/ui/core";
 import {
@@ -12,13 +13,14 @@ import { HospitalRequestActions } from "@/features/requests/hospital-request-act
 import { RequestDetailPoller } from "@/features/requests/request-detail-poller";
 import { ApiClientError } from "@/lib/api/errors";
 import { getHospitalRequest } from "@/lib/data/hospital";
+import { requestIdSchema } from "@/lib/validation/blood-request";
 
 export default async function HospitalRequestDetail({
   params,
 }: PageProps<"/hospital/requests/[id]">) {
   const { id } = await params;
 
-  if (!z.uuid().safeParse(id).success) {
+  if (!requestIdSchema.safeParse(id).success) {
     notFound();
   }
 

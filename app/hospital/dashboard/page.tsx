@@ -1,3 +1,5 @@
+/** Builds the hospital overview from organization and request data read in parallel. */
+
 import Link from "next/link";
 import {
   AlertTriangle,

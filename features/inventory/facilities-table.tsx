@@ -1,3 +1,5 @@
+/** Administrative facility prototype kept separate from authenticated provider inventory. */
+
 "use client";
 
 import { useMemo, useState } from "react";
@@ -122,20 +124,24 @@ export function FacilitiesTable() {
                 </td>
 
                 <td className="py-3.5 px-4 font-bold text-ink tabular-nums">
-                  {o.activeRequests} <span className="text-muted font-normal text-[11px]">active</span>
+                  {o.activeRequests}{" "}
+                  <span className="text-muted font-normal text-[11px]">active</span>
                 </td>
 
                 <td className="py-3.5 px-4 font-bold text-ink tabular-nums">
                   {o.totalStock ? (
                     <>
-                      {o.totalStock} <span className="text-muted font-normal text-[11px]">units</span>
+                      {o.totalStock}{" "}
+                      <span className="text-muted font-normal text-[11px]">units</span>
                     </>
                   ) : (
                     <span className="text-muted font-normal">—</span>
                   )}
                 </td>
 
-                <td className="py-3.5 px-4 text-muted text-[11.5px] whitespace-nowrap">{o.lastUpdated}</td>
+                <td className="py-3.5 px-4 text-muted text-[11.5px] whitespace-nowrap">
+                  {o.lastUpdated}
+                </td>
 
                 <td className="py-3.5 px-4 text-right">
                   <Link

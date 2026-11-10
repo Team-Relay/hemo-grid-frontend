@@ -1,3 +1,5 @@
+/** Administrative network-stock prototype; it is not used for provider inventory mutations. */
+
 "use client";
 
 import { useState } from "react";
@@ -169,17 +171,24 @@ export function NetworkInventoryView() {
                     {facility.group}
                   </span>
                 </td>
-                <td className="py-3.5 px-4 text-slate-700 font-medium">{componentLabels[facility.component]}</td>
+                <td className="py-3.5 px-4 text-slate-700 font-medium">
+                  {componentLabels[facility.component]}
+                </td>
                 <td className="py-3.5 px-4 font-bold text-ink tabular-nums">
-                  {facility.available} <span className="text-muted font-normal text-[11px]">units</span>
+                  {facility.available}{" "}
+                  <span className="text-muted font-normal text-[11px]">units</span>
                 </td>
                 <td className="py-3.5 px-4 text-amber-700 font-semibold tabular-nums">
-                  {facility.reserved} <span className="text-muted font-normal text-[11px]">units</span>
+                  {facility.reserved}{" "}
+                  <span className="text-muted font-normal text-[11px]">units</span>
                 </td>
                 <td className="py-3.5 px-4 font-bold text-emerald-700 tabular-nums">
-                  {facility.available - facility.reserved} <span className="text-muted font-normal text-[11px]">units</span>
+                  {facility.available - facility.reserved}{" "}
+                  <span className="text-muted font-normal text-[11px]">units</span>
                 </td>
-                <td className="py-3.5 px-4 text-muted text-[11.5px] whitespace-nowrap">2 min ago</td>
+                <td className="py-3.5 px-4 text-muted text-[11.5px] whitespace-nowrap">
+                  2 min ago
+                </td>
                 <td className="py-3.5 px-4 text-right">
                   <Link
                     href={`/admin/facilities/${facility.id}`}

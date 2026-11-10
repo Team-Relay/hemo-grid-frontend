@@ -1,4 +1,6 @@
-import { Check, Clock3, MapPin, Phone, UserRound } from "lucide-react";
+/** Shared request summary and lifecycle timeline used by hospital and provider views. */
+
+import { Check, Clock3 } from "lucide-react";
 import {
   BloodBadge,
   Panel,
@@ -95,7 +97,7 @@ export function RequestTimeline({ request }: { request: BloodRequest }) {
                 </p>
               </div>
               <time className="text-muted text-[10px]">
-                {event?.timestamp ?? (reached ? "Time unavailable" : "Pending")}
+                {event?.timestamp ?? (reached ? "Confirmed" : "Pending")}
               </time>
             </div>
           );
@@ -124,36 +126,23 @@ export function ProviderCard({ request }: { request: BloodRequest }) {
         </span>
         <div className="flex flex-col">
           <strong className="text-[12px]">{request.providerName ?? "Awaiting provider"}</strong>
-          <span className="flex items-center gap-1 mt-1 text-muted text-[10.5px]">
-            <MapPin size={12} />
-            {request.providerName ? "Location not provided" : "No provider selected"}
+          <span className="mt-1 text-muted text-[10.5px]">
+            {request.providerName ? "Selected fulfilment facility" : "Matching in progress"}
           </span>
         </div>
       </div>
       <div className="grid gap-0 [&>div]:flex [&>div]:justify-between [&>div]:gap-5 [&>div]:py-3 [&>div]:border-b [&>div]:border-[#edf1ef] [&>div:last-child]:border-0 [&>div:last-child]:pb-0 [&_span]:text-muted [&_span]:text-[11px] [&_strong]:text-[11.5px] [&_strong]:text-right [&_strong]:inline-flex [&_strong]:items-center [&_strong]:justify-end [&_strong]:gap-[5px]">
-        <div>
-          <span>Distance</span>
-          <strong>
-            {request.distanceKm === undefined ? "Not available" : `${request.distanceKm} km`}
-          </strong>
-        </div>
+        {request.distanceKm !== undefined && (
+          <div>
+            <span>Distance</span>
+            <strong>{request.distanceKm} km</strong>
+          </div>
+        )}
         <div>
           <span>Selection status</span>
           <strong className={request.providerName ? "text-success" : "text-muted"}>
             <i className="w-[6px] h-[6px] rounded-full bg-current" />
             {request.providerName ? "Selected" : "Awaiting selection"}
-          </strong>
-        </div>
-        <div>
-          <span>Coordinator</span>
-          <strong>
-            <UserRound size={12} /> Not provided
-          </strong>
-        </div>
-        <div>
-          <span>Contact</span>
-          <strong>
-            <Phone size={12} /> Not provided
           </strong>
         </div>
       </div>
@@ -168,12 +157,14 @@ export function MetadataCard({ request }: { request: BloodRequest }) {
       <div className="grid gap-0 [&>div]:flex [&>div]:justify-between [&>div]:gap-5 [&>div]:py-3 [&>div]:border-b [&>div]:border-[#edf1ef] [&>div:last-child]:border-0 [&>div:last-child]:pb-0 [&_span]:text-muted [&_span]:text-[11px] [&_strong]:text-[11.5px] [&_strong]:text-right [&_strong]:inline-flex [&_strong]:items-center [&_strong]:justify-end [&_strong]:gap-[5px]">
         <div>
           <span>Clinical reference</span>
-          <strong>{request.clinicalReference ?? "Not provided"}</strong>
+          <strong>{request.clinicalReference ?? "None recorded"}</strong>
         </div>
-        <div>
-          <span>Created by</span>
-          <strong>{request.createdBy ?? "Not provided by API"}</strong>
-        </div>
+        {request.createdBy && (
+          <div>
+            <span>Created by</span>
+            <strong>{request.createdBy}</strong>
+          </div>
+        )}
         <div>
           <span>Created</span>
           <strong>

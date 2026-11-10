@@ -1,3 +1,5 @@
+/** Hospital confirmation controls for provider selection and eligible request cancellation. */
+
 "use client";
 
 import { useActionState, useCallback, useState } from "react";
@@ -106,7 +108,7 @@ export function HospitalRequestActions({ request }: { request: BloodRequest }) {
             </h2>
             <p className="m-0 text-muted text-xs leading-[1.55]">
               The request will close immediately. Any selected provider will be notified and
-              reserved inventory will be released by the backend.
+              reserved inventory will be released automatically.
             </p>
 
             {state.message && (

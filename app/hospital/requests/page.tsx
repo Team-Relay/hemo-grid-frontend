@@ -1,3 +1,5 @@
+/** Reads and displays the authenticated hospital's request history. */
+
 import { Plus } from "lucide-react";
 import { ButtonLink, PageHeader } from "@/components/ui/core";
 import { RequestTable } from "@/features/requests/request-table";

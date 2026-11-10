@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 
+import { backendUuid } from "@/lib/validation/identifiers";
+
 const optionalText = (maximum: number, message: string) =>
   z
     .string()
@@ -38,7 +40,7 @@ export const createBloodRequestSchema = z.object({
   notes: optionalText(2_000, "Notes cannot exceed 2,000 characters."),
 });
 
-export const requestIdSchema = z.uuid("The request identifier is invalid.");
-export const providerIdSchema = z.uuid("The provider identifier is invalid.");
+export const requestIdSchema = backendUuid("The request identifier is invalid.");
+export const providerIdSchema = backendUuid("The provider identifier is invalid.");
 
 export type CreateBloodRequestInput = z.infer<typeof createBloodRequestSchema>;

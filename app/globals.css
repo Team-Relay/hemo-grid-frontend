@@ -1,24 +1,26 @@
+/* Global design tokens, responsive primitives, and reusable motion for the preserved UI. */
+
 @import "tailwindcss";
 
 :root {
-  --canvas: #F1F4F3;
-  --surface: #FFFFFF;
-  --surface-muted: #F8FAF9;
-  --ink: #15171A;
+  --canvas: #f1f4f3;
+  --surface: #ffffff;
+  --surface-muted: #f8faf9;
+  --ink: #15171a;
   --muted: #667085;
   --muted-2: #95a09e;
-  --border: #E3E7E5;
+  --border: #e3e7e5;
   --border-strong: #cbd6d2;
   --brand: #6c5ce7;
   --brand-dark: #5142d1;
   --brand-soft: #f0eeff;
-  --success: #12B76A;
+  --success: #12b76a;
   --success-soft: #e7f8ef;
-  --warning: #F79009;
+  --warning: #f79009;
   --warning-soft: #fef4e6;
-  --critical: #D92D20;
+  --critical: #d92d20;
   --critical-soft: #fceceb;
-  --info: #2E90FA;
+  --info: #2e90fa;
   --info-soft: #ebf4ff;
   --radius-panel: 24px;
   --radius-card: 16px;
@@ -230,7 +232,9 @@
   border: 0;
   border-radius: 999px;
   text-align: left;
-  transition: background 160ms ease, transform 180ms ease;
+  transition:
+    background 160ms ease,
+    transform 180ms ease;
 }
 .user-button:hover,
 .user-button.is-active {
@@ -579,7 +583,9 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-panel);
   background: var(--surface);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.02),
+    0 4px 12px rgba(0, 0, 0, 0.02);
 }
 .panel-pad {
   padding: 20px;

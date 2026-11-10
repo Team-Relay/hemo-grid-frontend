@@ -1,3 +1,5 @@
+/** Hospital-dashboard retry boundary for backend or network read failures. */
+
 "use client";
 
 import { ErrorState, PageHeader, Panel } from "@/components/ui/core";

@@ -1,3 +1,5 @@
+/** Privacy-safe missing-request state that does not reveal cross-organization ownership. */
+
 import { ButtonLink, EmptyState, PageHeader, Panel } from "@/components/ui/core";
 
 export default function RequestNotFound() {

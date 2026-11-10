@@ -6,14 +6,19 @@ Goal
 Integrate the existing Next.js frontend with the Spring Boot API using a secure,
 server-first architecture while preserving the current UI.
 
-CURRENT STATUS - 24 AUGUST 2026
+CURRENT STATUS - 25 AUGUST 2026
 --------------------------------
 
 Phase 0 frontend foundation: COMPLETE
 Phase 1 API and authentication foundation: COMPLETE
 Phase 2 hospital read flow: COMPLETE
 Phase 3 hospital request and matching flow: COMPLETE
-Next implementation phase: PHASE 4 - BLOOD-BANK PROVIDER FLOW
+Phase 4 blood-bank provider flow: COMPLETE
+Phase 5 blood-bank inventory: COMPLETE
+Phase 6 dashboard composition: COMPLETE
+Phase 7 testing and production hardening: COMPLETE
+Phase 8 code comments and documentation: COMPLETE
+Next implementation phase: PHASE 9 - ONBOARDING AND REMAINING API DECISIONS
 
 Verified results:
 
@@ -43,8 +48,14 @@ Verified results:
   dialog, with pending and conflict feedback that prevents repeated actions.
 - Active request detail pages refresh every five seconds while the tab is visible
   and stop polling after the request reaches a terminal state.
-- All 18 Spring Boot integration tests pass against an isolated PostgreSQL test
-  database using Microsoft JDK 21.
+- Provider request and inventory screens use real authenticated Spring Boot data.
+- Provider acceptance is concurrency-safe and cannot reserve inventory twice.
+- Closing a browser tab preserves a valid session; `/` and `/login` restore the
+  user to the dashboard for their role until explicit logout or token expiry.
+- Vitest mapper, error, validation, and role tests pass.
+- Playwright verifies session restoration, logout, and an accessibility scan.
+- All 20 Java 21 integration tests pass against an isolated PostgreSQL database.
+- Purpose comments and review documentation cover both repositories.
 
 Current API boundary:
 
@@ -228,6 +239,8 @@ Implementation notes:
 PHASE 4 - BLOOD-BANK PROVIDER FLOW
 ----------------------------------
 
+Status: COMPLETE (25 August 2026)
+
 The provider in HemoGrid is the selected blood bank.
 
 Endpoints:
@@ -266,6 +279,8 @@ Exit criteria:
 PHASE 5 - BLOOD-BANK INVENTORY
 ------------------------------
 
+Status: COMPLETE (25 August 2026)
+
 Endpoints:
 
 GET   /inventory
@@ -291,6 +306,8 @@ Exit criteria:
 
 PHASE 6 - DASHBOARD COMPOSITION
 -------------------------------
+
+Status: COMPLETE (25 August 2026)
 
 Tasks:
 
@@ -319,6 +336,8 @@ Exit criteria:
 PHASE 7 - TESTING AND PRODUCTION HARDENING
 ------------------------------------------
 
+Status: COMPLETE (25 August 2026)
+
 Tasks:
 
 1. Add unit tests for DTO mappers and error normalization.
@@ -342,6 +361,8 @@ Exit criteria:
 
 PHASE 8 - CODE COMMENTS AND DOCUMENTATION
 -----------------------------------------
+
+Status: COMPLETE (25 August 2026)
 
 Every new or materially modified integration file should have:
 
@@ -477,3 +498,39 @@ RECOMMENDED EXECUTION ORDER
 7. Phase 6.
 8. Phase 7 and Phase 8.
 9. Implement admin APIs and onboarding after the core integration is stable.
+
+
+PHASE 9 - ONBOARDING AND REMAINING API DECISIONS
+-------------------------------------------------
+
+Do not begin by adding public self-registration. First define the verified
+organization application, approval, invitation, activation, password recovery,
+member management, and audit contracts described above. Decide which admin and
+network prototype screens will receive real endpoints and which will be removed
+from the first release.
+
+Exit criteria:
+
+- An approved onboarding domain and endpoint contract exists.
+- Security decisions for invitations, verification, and recovery are documented.
+- Admin/network screens have a real API plan or are excluded from release.
+- Phase 10 environment names and release smoke tests are agreed.
+
+
+PHASE 10 - RENDER, VERCEL, AND NEON DEPLOYMENT
+----------------------------------------------
+
+1. Create a Neon production database and configure its JDBC/TLS credentials.
+2. Deploy the Java 21 backend Dockerfile to Render.
+3. Configure Render readiness at `/actuator/health/readiness`.
+4. Set a newly generated production JWT secret and exact Vercel CORS origin.
+5. Deploy Next.js to Vercel with server-only `HEMOGRID_API_URL`.
+6. Run login, session restoration, hospital request, provider fulfilment,
+   inventory, logout, error-state, and mobile/accessibility smoke tests.
+7. Confirm Flyway history, logs, health, secure cookies, and secret rotation.
+
+Exit criteria:
+
+- The deployed hospital-to-provider flow succeeds against Neon.
+- No local, demo-only, or previously shared secret is used in production.
+- Monitoring and rollback instructions are recorded before user testing.

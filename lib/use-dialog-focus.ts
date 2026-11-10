@@ -1,3 +1,5 @@
+/** Reusable focus management that makes custom confirmation dialogs keyboard-safe. */
+
 "use client";
 
 import { useEffect, useRef } from "react";

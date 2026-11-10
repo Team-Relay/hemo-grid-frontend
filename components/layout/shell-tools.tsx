@@ -1,3 +1,5 @@
+/** Interactive header tools; logout is a Server Action so browser code never handles the JWT. */
+
 "use client";
 
 import {

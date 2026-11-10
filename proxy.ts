@@ -1,8 +1,9 @@
 /**
  * Next.js 16 optimistic route protection.
  *
- * This checks only for session-cookie presence to keep Proxy fast. Spring Boot
- * and the server-only DAL perform the authoritative JWT and role validation.
+ * This checks only for session-cookie presence to keep Proxy fast. Public `/`
+ * and `/login` pages use the server-only DAL to restore valid sessions to the
+ * correct role dashboard; Spring Boot remains the authoritative validator.
  */
 
 import { NextResponse, type NextRequest } from "next/server";

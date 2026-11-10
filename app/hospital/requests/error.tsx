@@ -1,3 +1,5 @@
+/** Hospital request-list retry boundary for expected data-loading failures. */
+
 "use client";
 import { PageHeader, Panel, ErrorState } from "@/components/ui/core";
 export default function RequestsError({

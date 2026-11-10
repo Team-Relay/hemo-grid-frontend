@@ -5,8 +5,18 @@
  * presentation-oriented model without manufacturing unsupported API data.
  */
 
-import type { BackendBloodRequest, BackendCandidate } from "@/lib/api/backend-types";
-import type { BloodRequest, BloodRequestStatus, Candidate, TimelineEvent } from "@/types/domain";
+import type {
+  BackendBloodRequest,
+  BackendCandidate,
+  BackendInventoryItem,
+} from "@/lib/api/backend-types";
+import type {
+  BloodRequest,
+  BloodRequestStatus,
+  Candidate,
+  InventoryItem,
+  TimelineEvent,
+} from "@/types/domain";
 
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-NG", {
   dateStyle: "medium",
@@ -68,6 +78,31 @@ export function mapCandidate(dto: BackendCandidate): Candidate {
 
 export function mapCandidates(candidates: BackendCandidate[]): Candidate[] {
   return candidates.map(mapCandidate);
+}
+
+/** Maps bank-scoped inventory and supplies the trusted organization from the session read. */
+export function mapInventoryItem(
+  dto: BackendInventoryItem,
+  organizationId: string,
+  now = new Date(),
+): InventoryItem {
+  return {
+    id: dto.id,
+    organizationId,
+    bloodGroup: dto.bloodGroup,
+    component: dto.component,
+    availableUnits: dto.unitsAvailable,
+    reservedUnits: dto.unitsReserved,
+    lastUpdated: formatRelativeTime(dto.updatedAt, now),
+  };
+}
+
+export function mapInventoryItems(
+  items: BackendInventoryItem[],
+  organizationId: string,
+  now = new Date(),
+): InventoryItem[] {
+  return items.map((item) => mapInventoryItem(item, organizationId, now));
 }
 
 export function displayRequestReference(id: string): string {

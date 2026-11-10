@@ -1,3 +1,5 @@
+/** Explicit demonstration data used only by frontend views whose backend APIs do not yet exist. */
+
 import type {
   ActivityItem,
   BloodRequest,

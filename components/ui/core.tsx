@@ -1,3 +1,5 @@
+/** Design-system primitives shared across role workspaces to keep states visually consistent. */
+
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ArrowLeft, ArrowRight, Inbox, LoaderCircle, RefreshCw } from "lucide-react";
@@ -27,16 +29,17 @@ export function Button({
   size = "md",
   ...props
 }: ButtonProps) {
-  const baseClasses = "inline-flex items-center justify-center gap-2 rounded-full border border-transparent font-semibold transition-transform duration-160 ease-in-out disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none aria-busy:cursor-wait aria-busy:pointer-events-none hover:-translate-y-[1px]";
+  const baseClasses =
+    "inline-flex items-center justify-center gap-2 rounded-full border border-transparent font-semibold transition-transform duration-160 ease-in-out disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none aria-busy:cursor-wait aria-busy:pointer-events-none hover:-translate-y-[1px]";
   const sizeClasses = {
     sm: "min-h-[34px] px-[11px] text-[12px]",
-    md: "min-h-[40px] px-4 text-[13px]"
+    md: "min-h-[40px] px-4 text-[13px]",
   };
   const variantClasses = {
     primary: "text-[#fff] bg-brand border-brand hover:bg-brand-dark",
     secondary: "text-ink bg-white border-border-strong hover:bg-surface-muted",
     danger: "text-[#fff] bg-critical border-critical",
-    ghost: "text-muted bg-transparent hover:text-ink hover:bg-surface-muted"
+    ghost: "text-muted bg-transparent hover:text-ink hover:bg-surface-muted",
   };
 
   return (
@@ -48,7 +51,11 @@ export function Button({
     >
       {isLoading ? (
         <>
-          <LoaderCircle className="animate-[spin_700ms_linear_infinite] shrink-0" size={15} strokeWidth={1.9} />
+          <LoaderCircle
+            className="animate-[spin_700ms_linear_infinite] shrink-0"
+            size={15}
+            strokeWidth={1.9}
+          />
           <span>{loadingText}</span>
         </>
       ) : (
@@ -68,11 +75,11 @@ export function Panel({
   padding?: boolean;
 }) {
   return (
-    <section 
+    <section
       className={cn(
         "border border-border rounded-panel bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.02)]",
         padding && "p-5",
-        className
+        className,
       )}
     >
       {children}
@@ -97,13 +104,24 @@ export function PageHeader({
     <div className="flex min-h-[65px] items-end justify-between gap-6 mb-5">
       <div className="flex-1">
         {backHref && (
-          <Link href={backHref} className="inline-flex items-center gap-[5px] mb-2.5 text-muted text-xs font-semibold hover:text-ink">
+          <Link
+            href={backHref}
+            className="inline-flex items-center gap-[5px] mb-2.5 text-muted text-xs font-semibold hover:text-ink"
+          >
             <ArrowLeft size={15} /> Back
           </Link>
         )}
-        {eyebrow && <p className="m-0 mb-1.5 text-brand text-[11px] font-[720] tracking-[0.09em] uppercase">{eyebrow}</p>}
-        <h1 className="m-0 text-[clamp(25px,2vw,31px)] leading-[1.15] tracking-[-0.035em] font-[640]">{title}</h1>
-        {description && <p className="max-w-[660px] m-0 mt-[7px] text-muted leading-[1.55]">{description}</p>}
+        {eyebrow && (
+          <p className="m-0 mb-1.5 text-brand text-[11px] font-[720] tracking-[0.09em] uppercase">
+            {eyebrow}
+          </p>
+        )}
+        <h1 className="m-0 text-[clamp(25px,2vw,31px)] leading-[1.15] tracking-[-0.035em] font-[640]">
+          {title}
+        </h1>
+        {description && (
+          <p className="max-w-[660px] m-0 mt-[7px] text-muted leading-[1.55]">{description}</p>
+        )}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>
@@ -127,17 +145,26 @@ export function StatCard({
     brand: "text-brand",
     success: "text-success",
     warning: "text-warning",
-    critical: "text-critical"
+    critical: "text-critical",
   };
 
   return (
     <Panel className="min-w-0 min-h-[112px] p-[17px] relative rounded-card" padding={false}>
-      <div className={cn("w-[34px] h-[34px] grid place-items-center absolute right-[15px] top-[15px] rounded-full border-none bg-surface-muted", toneMap[tone])}>
+      <div
+        className={cn(
+          "w-[34px] h-[34px] grid place-items-center absolute right-[15px] top-[15px] rounded-full border-none bg-surface-muted",
+          toneMap[tone],
+        )}
+      >
         <Icon size={17} strokeWidth={1.8} />
       </div>
-      <p className="max-w-[calc(100%-34px)] min-h-[29px] m-0 text-muted text-[11.5px] leading-[1.35] font-semibold">{label}</p>
+      <p className="max-w-[calc(100%-34px)] min-h-[29px] m-0 text-muted text-[11.5px] leading-[1.35] font-semibold">
+        {label}
+      </p>
       <div className="flex items-end gap-2 mt-3">
-        <strong className="text-[34px] leading-none font-medium tracking-[-0.04em] tabular-nums">{value}</strong>
+        <strong className="text-[34px] leading-none font-medium tracking-[-0.04em] tabular-nums">
+          {value}
+        </strong>
         <span>{detail}</span>
       </div>
     </Panel>
@@ -153,11 +180,16 @@ export function StatusBadge({ status }: { status: BloodRequestStatus }) {
     DELIVERED: "text-success bg-success-soft border border-success/20",
     DECLINED: "text-critical bg-critical-soft border border-critical/20",
     CANCELLED: "text-muted bg-[#eef1f0] border border-border",
-    EXPIRED: "text-muted bg-[#eef1f0] border border-border"
+    EXPIRED: "text-muted bg-[#eef1f0] border border-border",
   };
 
   return (
-    <span className={cn("w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit", statusClasses[status])}>
+    <span
+      className={cn(
+        "w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit",
+        statusClasses[status],
+      )}
+    >
       <i className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />
       {formatStatus(status)}
     </span>
@@ -168,11 +200,16 @@ export function UrgencyBadge({ urgency }: { urgency: RequestUrgency }) {
   const urgencyClasses: Record<RequestUrgency, string> = {
     ROUTINE: "text-muted bg-[#eef1f0] border border-border",
     URGENT: "text-warning bg-warning-soft border border-warning/20",
-    CRITICAL: "text-critical bg-critical-soft border border-critical/20"
+    CRITICAL: "text-critical bg-critical-soft border border-critical/20",
   };
 
   return (
-    <span className={cn("w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit", urgencyClasses[urgency])}>
+    <span
+      className={cn(
+        "w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit",
+        urgencyClasses[urgency],
+      )}
+    >
       <i className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />
       {formatUrgency(urgency)}
     </span>
@@ -184,11 +221,16 @@ export function StockBadge({ health }: { health: StockHealth }) {
     HEALTHY: "text-success bg-success-soft border border-success/20",
     MODERATE: "text-info bg-info-soft border border-info/20",
     LOW: "text-warning bg-warning-soft border border-warning/20",
-    CRITICAL: "text-critical bg-critical-soft border border-critical/20"
+    CRITICAL: "text-critical bg-critical-soft border border-critical/20",
   };
 
   return (
-    <span className={cn("w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit", stockClasses[health])}>
+    <span
+      className={cn(
+        "w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-start shrink-0 leading-none h-fit",
+        stockClasses[health],
+      )}
+    >
       <i className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />
       {health.charAt(0) + health.slice(1).toLowerCase()}
     </span>
@@ -197,10 +239,12 @@ export function StockBadge({ health }: { health: StockHealth }) {
 
 export function BloodBadge({ group, large = false }: { group: BloodGroup; large?: boolean }) {
   return (
-    <span className={cn(
-      "inline-grid place-items-center shrink-0 text-brand-dark bg-brand-soft border border-[#dedfff] rounded-[10px] font-bold",
-      large ? "w-[42px] h-[42px] text-base" : "w-[34px] h-[34px] text-[12.5px]"
-    )}>
+    <span
+      className={cn(
+        "inline-grid place-items-center shrink-0 text-brand-dark bg-brand-soft border border-[#dedfff] rounded-[10px] font-bold",
+        large ? "w-[42px] h-[42px] text-base" : "w-[34px] h-[34px] text-[12.5px]",
+      )}
+    >
       {formatBloodGroup(group)}
     </span>
   );
@@ -247,14 +291,22 @@ export function EmptyState({
   );
 }
 
-export function ErrorState({ onRetry }: { onRetry?: () => void } = {}) {
+export function ErrorState({
+  title = "We couldn't load this view",
+  description = "Check your connection and try again.",
+  onRetry,
+}: {
+  title?: string;
+  description?: string;
+  onRetry?: () => void;
+} = {}) {
   return (
     <div className="min-h-[220px] flex flex-col items-center justify-center p-8 border border-dashed border-critical/30 rounded-[18px] text-center bg-critical-soft/50">
       <span className="w-11 h-11 grid place-items-center mb-3.5 rounded-full bg-critical-soft text-critical">
         <RefreshCw size={21} />
       </span>
-      <h3 className="m-0 mb-1.5 text-ink text-sm font-semibold tracking-[-0.01em]">We couldn&apos;t load this view</h3>
-      <p className="max-w-[280px] m-0 mb-5 text-muted text-xs leading-[1.55]">Check your connection and try again.</p>
+      <h3 className="m-0 mb-1.5 text-ink text-sm font-semibold tracking-[-0.01em]">{title}</h3>
+      <p className="max-w-[320px] m-0 mb-5 text-muted text-xs leading-[1.55]">{description}</p>
       {onRetry && (
         <Button variant="secondary" size="sm" onClick={onRetry}>
           Try again

@@ -21,6 +21,24 @@ export interface VerifiedSession {
   user: BackendUser;
 }
 
+/**
+ * Resolves a valid session for public entry pages without forcing a redirect.
+ * Invalid cookies are treated as signed-out; the next successful login safely
+ * replaces them because Server Components cannot mutate response cookies.
+ */
+export const getOptionalSession = cache(async (): Promise<VerifiedSession | null> => {
+  const accessToken = await getAccessToken();
+  if (!accessToken) return null;
+
+  try {
+    const user = await getCurrentUser(accessToken);
+    return { accessToken, user };
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 401) return null;
+    throw error;
+  }
+});
+
 export const verifySession = cache(async (): Promise<VerifiedSession> => {
   const accessToken = await getAccessToken();
 

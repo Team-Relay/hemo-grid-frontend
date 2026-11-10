@@ -1,3 +1,5 @@
+/** Refreshes active request details only while the tab is visible and the status is non-terminal. */
+
 "use client";
 
 import { useEffect, useTransition } from "react";

@@ -1,3 +1,5 @@
+/** Presents the existing administrative facility-detail prototype for product review. */
+
 import { Activity, Boxes, Building2, FileHeart, Hospital, MapPin } from "lucide-react";
 import { notFound } from "next/navigation";
 
@@ -105,7 +107,9 @@ export default async function FacilityDetail({ params }: PageProps<"/admin/facil
                     : "bg-warning-soft text-warning border border-warning/20"
                 }`}
               >
-                <i className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-emerald-500" : "bg-amber-500"}`} />
+                <i
+                  className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-emerald-500" : "bg-amber-500"}`}
+                />
                 {facility.networkStatus}
               </span>
             </div>

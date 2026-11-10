@@ -1,3 +1,5 @@
+/** Visual admin dashboard preview; see the layout notice for its API boundary. */
+
 import Link from "next/link";
 import {
   Activity,
@@ -34,17 +36,17 @@ export default function AdminDashboard() {
             Network Operations
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
-            Command Centre
+            Command Centre Preview
           </h1>
           <p className="text-xs sm:text-sm text-muted mt-1 max-w-xl">
-            Real-time availability and emergency fulfilment oversight across the HemoGrid regional network.
+            Preview of planned network availability and emergency fulfilment oversight.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-border shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold text-ink">Live Network Telemetry</span>
-          <span className="text-[11px] text-muted border-l border-border pl-2">Sync: Just now</span>
+          <span className="w-2 h-2 rounded-full bg-warning" />
+          <span className="text-xs font-semibold text-ink">Demonstration dataset</span>
+          <span className="text-[11px] text-muted border-l border-border pl-2">Not live</span>
         </div>
       </div>
 

@@ -1,3 +1,5 @@
+/** Accessible login experience backed by a Server Action and HttpOnly session cookie. */
+
 "use client";
 
 import { useActionState, useState } from "react";
@@ -295,8 +297,8 @@ export function LoginForm() {
             <div className="mt-6 flex items-start gap-2.5 border-t border-border pt-5 text-[10px] font-light leading-5 text-muted">
               <ShieldCheck size={14} className="mt-0.5 shrink-0 text-success" />
               <p className="m-0">
-                Demo credentials are verified by the HemoGrid API. Your access token is kept in a
-                secure HttpOnly session cookie.
+                Demo access is verified securely. Your authenticated session is protected and is
+                never exposed to browser scripts.
               </p>
             </div>
           </form>
