@@ -2,8 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
-export function useDialogFocus(open: boolean, onClose: () => void) {
-  const dialogRef = useRef<HTMLDivElement>(null);
+export function useDialogFocus<ElementType extends HTMLElement = HTMLDivElement>(
+  open: boolean,
+  onClose: () => void,
+) {
+  const dialogRef = useRef<ElementType>(null);
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;

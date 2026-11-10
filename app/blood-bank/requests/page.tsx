@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/ui/core";
 import { RequestTable } from "@/features/requests/request-table";
+import { bloodRequests } from "@/lib/mock/data";
 export default function ProviderRequestsPage() {
   return (
     <>
@@ -8,7 +9,7 @@ export default function ProviderRequestsPage() {
         title="Incoming requests"
         description="Review assigned requests and progress accepted fulfilments."
       />
-      <RequestTable scope="provider" />
+      <RequestTable requests={bloodRequests} scope="provider" />
     </>
   );
 }

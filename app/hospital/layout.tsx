@@ -1,4 +1,13 @@
 import { AppShell } from "@/components/layout/app-shell";
-export default function HospitalLayout({ children }: LayoutProps<"/hospital">) {
-  return <AppShell role="hospital">{children}</AppShell>;
+import { requireRole } from "@/lib/auth/dal";
+import { HOSPITAL_ROLES } from "@/lib/auth/roles";
+
+export default async function HospitalLayout({ children }: LayoutProps<"/hospital">) {
+  const { user } = await requireRole(HOSPITAL_ROLES);
+
+  return (
+    <AppShell role="hospital" user={user}>
+      {children}
+    </AppShell>
+  );
 }

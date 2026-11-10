@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { ShellTools } from "@/components/layout/shell-tools";
 import { cn } from "@/components/ui/core";
+import type { BackendUser, UserRole } from "@/lib/api/backend-types";
 
 export type AppRole = "hospital" | "blood-bank" | "admin";
 
@@ -18,9 +19,6 @@ export interface NavigationItem {
 
 const roleConfig = {
   hospital: {
-    organization: "Central Care Hospital",
-    roleLabel: "Hospital coordinator",
-    initials: "AO",
     items: [
       { label: "Dashboard", href: "/hospital/dashboard", icon: CircleGauge },
       { label: "Requests", href: "/hospital/requests", icon: FileHeart },
@@ -29,9 +27,6 @@ const roleConfig = {
     action: { label: "Emergency request", href: "/hospital/requests/new" },
   },
   "blood-bank": {
-    organization: "Maitama Blood Centre",
-    roleLabel: "Blood bank operator",
-    initials: "MN",
     items: [
       { label: "Dashboard", href: "/blood-bank/dashboard", icon: CircleGauge },
       { label: "Requests", href: "/blood-bank/requests", icon: FileHeart },
@@ -43,9 +38,6 @@ const roleConfig = {
     },
   },
   admin: {
-    organization: "HemoGrid Network",
-    roleLabel: "Platform administrator",
-    initials: "ID",
     items: [
       { label: "Command centre", href: "/admin/dashboard", icon: Command },
       { label: "Facilities", href: "/admin/facilities", icon: Building2 },
@@ -57,13 +49,29 @@ const roleConfig = {
 } satisfies Record<
   AppRole,
   {
-    organization: string;
-    roleLabel: string;
-    initials: string;
     items: NavigationItem[];
     action: { label: string; href: string } | null;
   }
 >;
+
+const roleLabels: Record<UserRole, string> = {
+  PLATFORM_ADMIN: "Platform administrator",
+  HOSPITAL_ADMIN: "Hospital administrator",
+  HOSPITAL_STAFF: "Hospital staff",
+  BLOOD_BANK_ADMIN: "Blood bank administrator",
+  BLOOD_BANK_STAFF: "Blood bank staff",
+};
+
+function initialsFor(fullName: string): string {
+  return (
+    fullName
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "HG"
+  );
+}
 
 export function Wordmark({
   href = "/login",
@@ -86,10 +94,25 @@ export function Wordmark({
   );
 }
 
-export function AppShell({ role, children }: { role: AppRole; children: React.ReactNode }) {
+export function AppShell({
+  role,
+  user,
+  children,
+}: {
+  role: AppRole;
+  user: BackendUser;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
-  const config = roleConfig[role];
+  const config = {
+    ...roleConfig[role],
+    organization: user.organization?.name ?? "HemoGrid Network",
+    roleLabel: roleLabels[user.role],
+    initials: initialsFor(user.fullName),
+    fullName: user.fullName,
+    email: user.email,
+  };
 
   return (
     <div className="min-h-screen">

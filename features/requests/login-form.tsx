@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useState } from "react";
 import {
   Activity,
   ArrowRight,
@@ -15,51 +14,43 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
+import { loginAction } from "@/app/actions/auth";
 import { Wordmark } from "@/components/layout/app-shell";
 import { Button, cn } from "@/components/ui/core";
+import { initialLoginState } from "@/lib/auth/login-action-state";
 
 const roles = [
   {
     id: "hospital",
     label: "Hospital",
-    email: "coordinator@centralcare.org",
+    email: "hospital.demo@hemogrid.local",
+    password: "HospitalDemo123!",
     icon: Building2,
-    href: "/hospital/dashboard",
   },
   {
     id: "blood-bank",
     label: "Blood bank",
-    email: "operator@maitama-blood.ng",
+    email: "bank.demo@hemogrid.local",
+    password: "BankDemo123!",
     icon: Landmark,
-    href: "/blood-bank/dashboard",
   },
   {
     id: "admin",
     label: "Platform admin",
-    email: "admin@hemogrid.health",
+    email: "admin.demo@hemogrid.local",
+    password: "AdminDemo123!",
     icon: ShieldCheck,
-    href: "/admin/dashboard",
   },
 ] as const;
 
 export function LoginForm() {
-  const router = useRouter();
   const [role, setRole] = useState<(typeof roles)[number]>(roles[0]);
   const [visible, setVisible] = useState(false);
-  const [password, setPassword] = useState("demo-access");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
-  function submit(event: React.FormEvent) {
-    event.preventDefault();
-    if (password.length < 6) {
-      setError("Enter at least 6 characters to continue.");
-      return;
-    }
-    setError("");
-    setSubmitting(true);
-    window.setTimeout(() => router.push(role.href), 650);
-  }
+  const [password, setPassword] = useState<string>(role.password);
+  const [state, formAction, isPending] = useActionState(loginAction, initialLoginState);
+  const emailError = state.fieldErrors?.email?.[0];
+  const passwordError = state.fieldErrors?.password?.[0];
+  const formError = !emailError && !passwordError ? state.message : "";
 
   return (
     <main className="grid min-h-screen grid-cols-1 bg-white lg:grid-cols-2">
@@ -165,7 +156,7 @@ export function LoginForm() {
             </p>
           </div>
 
-          <form onSubmit={submit} noValidate>
+          <form action={formAction} noValidate>
             <fieldset className="mb-6 border-0 p-0">
               <legend className="mb-2.5 text-[11.5px] font-medium text-[#35423f]">
                 Workspace type
@@ -177,7 +168,7 @@ export function LoginForm() {
                     key={item.id}
                     onClick={() => {
                       setRole(item);
-                      setError("");
+                      setPassword(item.password);
                     }}
                     className={cn(
                       "relative flex min-h-[76px] min-w-0 flex-col items-start justify-center gap-2 rounded-[11px] px-3 text-left text-[10.5px] font-medium transition-all duration-150 disabled:cursor-wait",
@@ -186,7 +177,7 @@ export function LoginForm() {
                         : "text-muted hover:bg-white/70 hover:text-ink",
                     )}
                     aria-pressed={item.id === role.id}
-                    disabled={submitting}
+                    disabled={isPending}
                   >
                     <span
                       className={cn(
@@ -218,12 +209,24 @@ export function LoginForm() {
                 <Mail size={16} strokeWidth={1.8} />
                 <input
                   id="email"
+                  name="email"
                   type="email"
                   value={role.email}
                   readOnly
+                  aria-invalid={Boolean(emailError)}
+                  aria-describedby={emailError ? "email-error" : undefined}
                   className="min-h-[46px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-[#4e5b58] outline-none"
                 />
               </div>
+              {emailError && (
+                <span
+                  id="email-error"
+                  className="mt-2 block text-[10.5px] text-critical"
+                  role="alert"
+                >
+                  {emailError}
+                </span>
+              )}
             </div>
 
             <div className="mb-4">
@@ -242,10 +245,12 @@ export function LoginForm() {
                 <LockKeyhole size={16} strokeWidth={1.8} />
                 <input
                   id="password"
+                  name="password"
                   type={visible ? "text" : "password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  aria-invalid={Boolean(error)}
+                  aria-invalid={Boolean(passwordError || formError)}
+                  aria-describedby={passwordError || formError ? "login-error" : undefined}
                   className="min-h-[46px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-ink outline-none"
                 />
                 <button
@@ -257,21 +262,30 @@ export function LoginForm() {
                   {visible ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
-              {error && (
-                <span className="mt-2 block text-[10.5px] text-critical" role="alert">
-                  {error}
+              {(passwordError || formError) && (
+                <span
+                  id="login-error"
+                  className="mt-2 block text-[10.5px] text-critical"
+                  role="alert"
+                >
+                  {passwordError || formError}
                 </span>
               )}
             </div>
 
             <label className="mb-6 flex items-center gap-2.5 text-[11px] font-light text-[#53615e]">
-              <input type="checkbox" defaultChecked className="h-3.5 w-3.5 accent-brand" />
+              <input
+                name="remember"
+                type="checkbox"
+                defaultChecked
+                className="h-3.5 w-3.5 accent-brand"
+              />
               <span>Keep me signed in on this device</span>
             </label>
 
             <Button
               type="submit"
-              isLoading={submitting}
+              isLoading={isPending}
               loadingText="Opening workspace…"
               className="min-h-12 w-full text-[13px]"
             >
@@ -281,7 +295,8 @@ export function LoginForm() {
             <div className="mt-6 flex items-start gap-2.5 border-t border-border pt-5 text-[10px] font-light leading-5 text-muted">
               <ShieldCheck size={14} className="mt-0.5 shrink-0 text-success" />
               <p className="m-0">
-                Demo access uses local data. No credentials are transmitted or stored.
+                Demo credentials are verified by the HemoGrid API. Your access token is kept in a
+                secure HttpOnly session cookie.
               </p>
             </div>
           </form>

@@ -1,3 +1,6 @@
+import { notFound } from "next/navigation";
+import { z } from "zod";
+
 import { PageHeader } from "@/components/ui/core";
 import {
   MetadataCard,
@@ -6,14 +9,32 @@ import {
   RequestTimeline,
 } from "@/components/ui/request-detail";
 import { HospitalRequestActions } from "@/features/requests/hospital-request-actions";
-import { getRequest } from "@/lib/mock/data";
+import { RequestDetailPoller } from "@/features/requests/request-detail-poller";
+import { ApiClientError } from "@/lib/api/errors";
+import { getHospitalRequest } from "@/lib/data/hospital";
+
 export default async function HospitalRequestDetail({
   params,
 }: PageProps<"/hospital/requests/[id]">) {
   const { id } = await params;
-  const request = getRequest(id);
+
+  if (!z.uuid().safeParse(id).success) {
+    notFound();
+  }
+
+  let request;
+  try {
+    request = await getHospitalRequest(id);
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 404) {
+      notFound();
+    }
+    throw error;
+  }
+
   return (
     <>
+      <RequestDetailPoller status={request.status} />
       <PageHeader
         backHref="/hospital/requests"
         title={`Request ${request.reference}`}

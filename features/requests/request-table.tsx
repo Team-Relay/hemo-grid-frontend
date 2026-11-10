@@ -5,18 +5,21 @@ import { useMemo, useState } from "react";
 import { ArrowRight, ArrowUpDown, Search } from "lucide-react";
 import {
   BloodBadge,
+  ButtonLink,
+  EmptyState,
   Pagination,
   StatusBadge,
   TableShell,
   UrgencyBadge,
 } from "@/components/ui/core";
 import { formatComponent } from "@/lib/domain";
-import { bloodRequests } from "@/lib/mock/data";
-import type { BloodRequestStatus, RequestUrgency } from "@/types/domain";
+import type { BloodRequest, BloodRequestStatus, RequestUrgency } from "@/types/domain";
 
 export function RequestTable({
+  requests,
   scope = "hospital",
 }: {
+  requests: BloodRequest[];
   scope?: "hospital" | "provider" | "admin";
 }) {
   const [query, setQuery] = useState("");
@@ -25,7 +28,7 @@ export function RequestTable({
 
   const rows = useMemo(
     () =>
-      bloodRequests.filter((request) => {
+      requests.filter((request) => {
         const haystack =
           `${request.reference} ${request.hospitalName} ${request.providerName ?? ""}`.toLowerCase();
         return (
@@ -34,7 +37,7 @@ export function RequestTable({
           (urgency === "ALL" || request.urgency === urgency)
         );
       }),
-    [query, status, urgency],
+    [requests, query, status, urgency],
   );
 
   const base =
@@ -98,7 +101,21 @@ export function RequestTable({
         </div>
       </div>
 
-      {rows.length ? (
+      {requests.length === 0 ? (
+        <EmptyState
+          title={scope === "hospital" ? "No blood requests yet" : "No requests available"}
+          description={
+            scope === "hospital"
+              ? "Create your first request to begin matching with eligible blood banks."
+              : "Assigned requests will appear here when they become available."
+          }
+          action={
+            scope === "hospital" ? (
+              <ButtonLink href="/hospital/requests/new">Create request</ButtonLink>
+            ) : undefined
+          }
+        />
+      ) : rows.length ? (
         <>
           <TableShell>
             <thead>
@@ -125,14 +142,20 @@ export function RequestTable({
                       <strong className="block font-bold text-ink text-[13px] group-hover:text-brand transition-colors">
                         {request.reference}
                       </strong>
-                      <span className="text-[11px] text-muted block mt-0.5">Updated {request.updatedAt}</span>
+                      <span className="text-[11px] text-muted block mt-0.5">
+                        Updated {request.updatedAt}
+                      </span>
                     </Link>
                   </td>
 
                   {scope !== "hospital" && (
                     <td className="py-3.5 px-4">
-                      <strong className="block font-semibold text-ink">{request.hospitalName}</strong>
-                      <span className="text-[11px] text-muted block mt-0.5">{request.distanceKm ?? "—"} km away</span>
+                      <strong className="block font-semibold text-ink">
+                        {request.hospitalName}
+                      </strong>
+                      <span className="text-[11px] text-muted block mt-0.5">
+                        {request.distanceKm ?? "—"} km away
+                      </span>
                     </td>
                   )}
 
@@ -162,12 +185,16 @@ export function RequestTable({
                         {request.providerName ?? "Awaiting Assignment"}
                       </strong>
                       <span className="text-[11px] text-muted block mt-0.5">
-                        {request.providerName ? `${request.distanceKm} km transit` : "Searching network…"}
+                        {request.providerName
+                          ? `${request.distanceKm} km transit`
+                          : "Searching network…"}
                       </span>
                     </td>
                   )}
 
-                  <td className="py-3.5 px-4 text-muted text-[11.5px] whitespace-nowrap">{request.createdAt}</td>
+                  <td className="py-3.5 px-4 text-muted text-[11.5px] whitespace-nowrap">
+                    {request.createdAt}
+                  </td>
 
                   <td className="py-3.5 px-4 text-right">
                     <Link
@@ -181,7 +208,7 @@ export function RequestTable({
               ))}
             </tbody>
           </TableShell>
-          <Pagination label={`Showing ${rows.length} of ${bloodRequests.length} emergency requests`} />
+          <Pagination label={`Showing ${rows.length} of ${requests.length} emergency requests`} />
         </>
       ) : (
         <div className="py-12 px-4 text-center rounded-2xl bg-surface-muted border border-dashed border-border">

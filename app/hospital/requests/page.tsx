@@ -1,7 +1,11 @@
 import { Plus } from "lucide-react";
 import { ButtonLink, PageHeader } from "@/components/ui/core";
 import { RequestTable } from "@/features/requests/request-table";
-export default function HospitalRequests() {
+import { getHospitalRequests } from "@/lib/data/hospital";
+
+export default async function HospitalRequests() {
+  const requests = await getHospitalRequests();
+
   return (
     <>
       <PageHeader
@@ -14,7 +18,7 @@ export default function HospitalRequests() {
           </ButtonLink>
         }
       />
-      <RequestTable />
+      <RequestTable requests={requests} />
     </>
   );
 }

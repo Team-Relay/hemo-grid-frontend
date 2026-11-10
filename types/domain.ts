@@ -70,25 +70,26 @@ export interface BloodRequest {
   status: BloodRequestStatus;
   createdAt: string;
   updatedAt: string;
+  deliveredAt?: string;
   distanceKm?: number;
   clinicalReference?: string;
   notes?: string;
-  createdBy: string;
+  createdBy?: string;
   timeline: TimelineEvent[];
 }
 
 export interface Candidate {
   organizationId: string;
   organizationName: string;
-  location: string;
+  location?: string;
   bloodGroup: BloodGroup;
   component: BloodComponent;
   unitsFree: number;
-  distanceKm: number;
-  fulfilmentMinutes: number;
+  distanceKm?: number;
+  fulfilmentMinutes?: number;
   canFullyFulfil: boolean;
   rank: number;
-  coordinates: { x: number; y: number };
+  coordinates?: { x: number; y: number };
 }
 
 export interface ActivityItem {

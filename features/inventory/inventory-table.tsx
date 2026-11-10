@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { ArrowUpDown, Check, Edit3, Filter, Search, Sparkles, X } from "lucide-react";
+import { Edit3, Search, X } from "lucide-react";
 import { BloodBadge, Button, Pagination, StockBadge, TableShell } from "@/components/ui/core";
 import {
   bloodComponents,
@@ -92,7 +92,9 @@ export function InventoryTable() {
         <div className="p-4 rounded-2xl bg-white border border-border shadow-sm">
           <span className="text-xs font-medium text-muted block">Committed & Reserved</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <strong className="text-2xl font-bold text-amber-600 tabular-nums">{totalReserved}</strong>
+            <strong className="text-2xl font-bold text-amber-600 tabular-nums">
+              {totalReserved}
+            </strong>
             <span className="text-xs text-muted">active allocations</span>
           </div>
         </div>
@@ -100,7 +102,9 @@ export function InventoryTable() {
         <div className="p-4 rounded-2xl bg-white border border-border shadow-sm">
           <span className="text-xs font-medium text-muted block">Unassigned Free Inventory</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <strong className="text-2xl font-bold text-emerald-600 tabular-nums">{totalFree}</strong>
+            <strong className="text-2xl font-bold text-emerald-600 tabular-nums">
+              {totalFree}
+            </strong>
             <span className="text-xs text-muted">ready for dispatch</span>
           </div>
         </div>
@@ -115,7 +119,10 @@ export function InventoryTable() {
       </div>
 
       {/* Main Inventory Data Matrix */}
-      <div id="inventory-table" className="p-6 rounded-3xl bg-white border border-border shadow-sm space-y-4">
+      <div
+        id="inventory-table"
+        className="p-6 rounded-3xl bg-white border border-border shadow-sm space-y-4"
+      >
         {/* Toolbar & Filters */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
           {/* Search Input */}
@@ -202,10 +209,12 @@ export function InventoryTable() {
                     {formatComponent(item.component)}
                   </td>
                   <td className="py-3.5 px-4 font-bold text-ink tabular-nums">
-                    {item.availableUnits} <span className="text-muted font-normal text-[11px]">units</span>
+                    {item.availableUnits}{" "}
+                    <span className="text-muted font-normal text-[11px]">units</span>
                   </td>
                   <td className="py-3.5 px-4 text-amber-700 font-semibold tabular-nums">
-                    {item.reservedUnits} <span className="text-muted font-normal text-[11px]">units</span>
+                    {item.reservedUnits}{" "}
+                    <span className="text-muted font-normal text-[11px]">units</span>
                   </td>
                   <td className="py-3.5 px-4 font-bold text-emerald-700 tabular-nums">
                     {free} <span className="text-muted font-normal text-[11px]">units</span>
@@ -251,7 +260,8 @@ export function InventoryTable() {
                 <BloodBadge group={editing.bloodGroup} large />
                 <div>
                   <h2 id="edit-stock" className="text-base font-bold text-ink">
-                    Update {formatBloodGroup(editing.bloodGroup)} {formatComponent(editing.component)}
+                    Update {formatBloodGroup(editing.bloodGroup)}{" "}
+                    {formatComponent(editing.component)}
                   </h2>
                   <p className="text-xs text-muted mt-0.5">
                     Adjust screened units and committed reserves
@@ -272,7 +282,10 @@ export function InventoryTable() {
             {/* Inputs */}
             <div className="grid grid-cols-2 gap-3.5 pt-2">
               <div>
-                <label htmlFor="available" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label
+                  htmlFor="available"
+                  className="block text-xs font-semibold text-slate-700 mb-1.5"
+                >
                   Available Units
                 </label>
                 <input
@@ -286,7 +299,10 @@ export function InventoryTable() {
               </div>
 
               <div>
-                <label htmlFor="reserved" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label
+                  htmlFor="reserved"
+                  className="block text-xs font-semibold text-slate-700 mb-1.5"
+                >
                   Reserved Units
                 </label>
                 <input
@@ -303,7 +319,9 @@ export function InventoryTable() {
 
             {/* Live Calculation Banner */}
             <div className="p-3.5 rounded-xl bg-surface-muted border border-border flex items-center justify-between text-xs">
-              <span className="font-medium text-slate-600">Calculated free stock for dispatch:</span>
+              <span className="font-medium text-slate-600">
+                Calculated free stock for dispatch:
+              </span>
               <strong className="text-sm font-bold text-emerald-600">
                 {Math.max(0, available - reserved)} units
               </strong>
