@@ -3,7 +3,7 @@
 "use client";
 
 import { Building2, Cross, LocateFixed, MapPin, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/components/ui/core";
 import { organizations } from "@/lib/mock/data";
@@ -19,6 +19,10 @@ export function NetworkMap({
 }) {
   const [selectedFacilityId, setSelectedFacilityId] = useState(selectedId);
   const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    setSelectedFacilityId(selectedId);
+  }, [selectedId]);
   const selectedFacility =
     organizations.find((organization) => organization.id === selectedFacilityId) ??
     organizations[1];

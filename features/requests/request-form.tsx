@@ -4,7 +4,17 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Check, Minus, Plus, Search, ShieldAlert } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Building,
+  Check,
+  MapPin,
+  Minus,
+  Plus,
+  Search,
+  ShieldAlert,
+} from "lucide-react";
 import { z } from "zod";
 
 import { revalidateHospitalRequestsAction } from "@/app/actions/blood-requests";
@@ -36,6 +46,73 @@ import type { BloodComponent, BloodGroup, RequestUrgency } from "@/types/domain"
 const urgencies: RequestUrgency[] = ["ROUTINE", "URGENT", "CRITICAL"];
 const UNKNOWN_PROTOCOL_PREFIX = "[EMERGENCY UNKNOWN BLOOD GROUP — UNIVERSAL O− PROTOCOL]";
 
+interface SpecialPrepOption {
+  id: string;
+  label: string;
+  baseComponent: BloodComponent | null;
+  coldChainTag: string;
+  description: string;
+}
+
+const specialPreps: SpecialPrepOption[] = [
+  {
+    id: "STANDARD",
+    label: "Standard Unmodified Component",
+    baseComponent: null,
+    coldChainTag: "Standard protocol",
+    description: "Standard screened and cold-chain verified bag",
+  },
+  {
+    id: "FFP",
+    label: "Fresh Frozen Plasma (FFP)",
+    baseComponent: "PLASMA",
+    coldChainTag: "≤ −18°C frozen",
+    description: "High-yield coagulation factors for massive hemorrhage or coagulopathy",
+  },
+  {
+    id: "CRYO",
+    label: "Cryoprecipitate Antihemophilic Factor (AHF)",
+    baseComponent: "PLASMA",
+    coldChainTag: "≤ −18°C frozen",
+    description: "Fibrinogen and Factor VIII rich fraction for massive bleeding or DIC",
+  },
+  {
+    id: "WASHED_RBC",
+    label: "Washed Red Blood Cells",
+    baseComponent: "RED_CELLS",
+    coldChainTag: "2°C–6°C verified",
+    description: "Saline-washed to eliminate donor plasma proteins and prevent allergic reactions",
+  },
+  {
+    id: "IRRADIATED",
+    label: "Irradiated Blood Component (25 Gy)",
+    baseComponent: "RED_CELLS",
+    coldChainTag: "2°C–6°C verified",
+    description: "Gamma irradiation to prevent Transfusion-Associated Graft-versus-Host Disease",
+  },
+  {
+    id: "PEDIATRIC",
+    label: "Pediatric / Neonatal Quad-Pack",
+    baseComponent: "RED_CELLS",
+    coldChainTag: "2°C–6°C verified",
+    description: "Volume-divided aliquots for neonatal exchange and infant resuscitation",
+  },
+  {
+    id: "APHERESIS_PLT",
+    label: "Apheresis Single-Donor Platelets (SDP)",
+    baseComponent: "PLATELETS",
+    coldChainTag: "20°C–24°C agitated",
+    description: "Single-donor high-yield platelets minimizing donor antigen exposure",
+  },
+  {
+    id: "OTHER",
+    label: "Other Specialized Derivative",
+    baseComponent: null,
+    coldChainTag: "Custom specification",
+    description: "Custom derivative or preparation specified in Clinical Context",
+  },
+];
+
 function isRequestField(
   field: string,
 ): field is keyof NonNullable<RequestFormActionState["fieldErrors"]> {
@@ -60,9 +137,13 @@ export function RequestForm() {
   const router = useRouter();
   const [group, setGroup] = useState<BloodGroup>("O_NEGATIVE");
   const [component, setComponent] = useState<BloodComponent>("RED_CELLS");
+  const [specialPrep, setSpecialPrep] = useState("STANDARD");
   const [units, setUnits] = useState(3);
   const [urgency, setUrgency] = useState<RequestUrgency>("CRITICAL");
   const [unknownBloodGroup, setUnknownBloodGroup] = useState(false);
+  const [deliveryWard, setDeliveryWard] = useState("");
+  const [hasTransfusionReaction, setHasTransfusionReaction] = useState(false);
+  const [reactionDetails, setReactionDetails] = useState("");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [leaving, setLeaving] = useState(false);
@@ -74,7 +155,16 @@ export function RequestForm() {
     if (enabled) {
       setGroup("O_NEGATIVE");
       setComponent("RED_CELLS");
+      setSpecialPrep("STANDARD");
       setUrgency("CRITICAL");
+    }
+  }
+
+  function handleSpecialPrepChange(selectedId: string) {
+    setSpecialPrep(selectedId);
+    const option = specialPreps.find((p) => p.id === selectedId);
+    if (option?.baseComponent) {
+      setComponent(option.baseComponent);
     }
   }
 
@@ -82,10 +172,35 @@ export function RequestForm() {
     event.preventDefault();
     if (isPending || leaving) return;
 
-    const effectiveNotes =
-      unknownBloodGroup && !notes.includes(UNKNOWN_PROTOCOL_PREFIX)
-        ? `${UNKNOWN_PROTOCOL_PREFIX} ${notes}`.trim()
-        : notes;
+    const clinicalSegments: string[] = [];
+
+    if (unknownBloodGroup) {
+      clinicalSegments.push(UNKNOWN_PROTOCOL_PREFIX);
+    }
+
+    if (deliveryWard.trim()) {
+      clinicalSegments.push(`[DELIVERY POINT: ${deliveryWard.trim()}]`);
+    }
+
+    if (specialPrep !== "STANDARD") {
+      const prepObj = specialPreps.find((p) => p.id === specialPrep);
+      if (prepObj) {
+        clinicalSegments.push(`[SPECIAL PREPARATION: ${prepObj.label}]`);
+      }
+    }
+
+    if (hasTransfusionReaction) {
+      const detail = reactionDetails.trim()
+        ? reactionDetails.trim()
+        : "Prior adverse reaction reported — extended antibody crossmatch required";
+      clinicalSegments.push(`[ALERT - TRANSFUSION REACTION HISTORY: ${detail}]`);
+    }
+
+    if (notes.trim()) {
+      clinicalSegments.push(`[CLINICAL CONTEXT: ${notes.trim()}]`);
+    }
+
+    const effectiveNotes = clinicalSegments.join("\n\n");
 
     const validated = createBloodRequestSchema.safeParse({
       bloodGroup: group,
@@ -93,7 +208,7 @@ export function RequestForm() {
       unitsRequired: units,
       urgency,
       clinicalReference: reference,
-      notes: effectiveNotes,
+      notes: effectiveNotes.length > 0 ? effectiveNotes : undefined,
     });
 
     if (!validated.success) {
@@ -151,7 +266,7 @@ export function RequestForm() {
         backHref="/hospital/requests"
         eyebrow="Emergency Fulfilment"
         title="Create blood request"
-        description="Enter the exact blood group and component required. HemoGrid evaluates ABO/Rh compatibility, Universal O− conservation rules, cold-chain integrity, and road-corridor transit ETA."
+        description="Enter the exact blood group, component preparation, and point of care delivery. HemoGrid evaluates ABO/Rh compatibility, Universal O− preservation rules, cold-chain telemetry, and road transit ETA."
       />
 
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -168,8 +283,7 @@ export function RequestForm() {
                   1. Target Blood Group
                 </h2>
                 <p className="text-xs text-muted mt-0.5">
-                  Select the exact patient group or activate the Emergency Unknown Blood Group
-                  trauma protocol.
+                  Select the patient ABO/Rh group or activate the Emergency Trauma Protocol.
                 </p>
               </div>
 
@@ -196,8 +310,34 @@ export function RequestForm() {
               <FeedbackBanner
                 tone="warning"
                 title="Emergency Unknown Blood Group — Universal O− Protocol"
-                message="Unidentified trauma & obstetric hemorrhage protocol activated: HemoGrid locks O− Red Cells with CRITICAL dispatch priority and restricts candidate ranking to cold-chain verified O− reserves."
+                message="Unidentified trauma & obstetric hemorrhage protocol activated: HemoGrid locks O− Red Cells with CRITICAL priority and restricts candidate ranking to cold-chain verified O− reserves."
               />
+            )}
+
+            {/* Universal Buffer Preservation Protocol Callout */}
+            {group === "O_NEGATIVE" && (
+              <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 font-bold text-amber-900">
+                    <ShieldAlert size={15} className="text-amber-700 shrink-0" />
+                    <span>Preservation of the Universal Buffer (O− Protocol)</span>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-200/70 text-amber-900">
+                    National Strategic Reserve
+                  </span>
+                </div>
+                <p className="text-[11.5px] leading-relaxed text-amber-900/90">
+                  Universal O− units represent the national strategic emergency buffer for life-threatening trauma and uncrossmatched maternal hemorrhage. HemoGrid audits O− usage against regional inventory thresholds to prevent buffer exhaustion. Type-specific blood must be ordered whenever patient ABO/Rh is confirmed.
+                </p>
+                {urgency === "ROUTINE" && (
+                  <div className="p-2.5 rounded-xl bg-white/80 border border-amber-300 text-[11px] font-medium text-amber-900 flex items-start gap-2">
+                    <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Stewardship Notice:</strong> Routine priority selected for O− blood. Please confirm whether patient is verified O− negative, or select the patient's type-specific group to conserve the national universal reserve.
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -250,19 +390,31 @@ export function RequestForm() {
                 2. Component Requirement
               </h2>
               <p className="text-xs text-muted mt-0.5">
-                Inventory matching uses the exact selected component preparation and cold-chain
-                storage profile.
+                Select the base component and optional specialized derivative. Inventory matching verifies exact cold-chain storage parameters.
               </p>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {bloodComponents.map((value) => {
                 const isSelected = value === component;
+                const coldTag =
+                  value === "PLASMA"
+                    ? "≤ −18°C"
+                    : value === "PLATELETS"
+                      ? "20°C–24°C"
+                      : "2°C–6°C";
                 return (
                   <button
                     key={value}
                     type="button"
-                    onClick={() => setComponent(value)}
+                    onClick={() => {
+                      setComponent(value);
+                      // Reset special prep if it doesn't align
+                      const currentOption = specialPreps.find((p) => p.id === specialPrep);
+                      if (currentOption?.baseComponent && currentOption.baseComponent !== value) {
+                        setSpecialPrep("STANDARD");
+                      }
+                    }}
                     disabled={isPending || leaving}
                     className={cn(
                       "p-3.5 rounded-2xl border text-left transition-all duration-150 relative flex items-center justify-between",
@@ -275,7 +427,9 @@ export function RequestForm() {
                       <strong className="block text-xs sm:text-[13px] font-bold tracking-tight">
                         {formatComponent(value)}
                       </strong>
-                      <span className="text-[10.5px] text-muted font-medium">Screened Stock</span>
+                      <span className="text-[10.5px] text-muted font-medium">
+                        Cold gate: {coldTag}
+                      </span>
                     </div>
                     {isSelected && (
                       <span className="w-5 h-5 rounded-full bg-brand text-white grid place-items-center shrink-0 shadow-sm">
@@ -285,6 +439,43 @@ export function RequestForm() {
                   </button>
                 );
               })}
+            </div>
+
+            {/* Special Component Derivative / Preparation Dropdown */}
+            <div className="p-4 rounded-2xl bg-surface-muted/60 border border-border space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label
+                  htmlFor="special-prep-select"
+                  className="text-xs font-bold text-ink flex items-center gap-1.5"
+                >
+                  <span>Special Component Derivative / Preparation</span>
+                  <span className="text-muted font-normal text-[11px]">(Optional)</span>
+                </label>
+                <span className="text-[11px] font-semibold text-brand">
+                  {specialPreps.find((p) => p.id === specialPrep)?.coldChainTag}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                <div className="sm:col-span-2">
+                  <select
+                    id="special-prep-select"
+                    value={specialPrep}
+                    onChange={(e) => handleSpecialPrepChange(e.target.value)}
+                    disabled={isPending || leaving}
+                    className="w-full h-10 px-3.5 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all cursor-pointer"
+                  >
+                    {specialPreps.map((prep) => (
+                      <option key={prep.id} value={prep.id}>
+                        {prep.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-1 text-[11px] text-muted leading-tight">
+                  {specialPreps.find((p) => p.id === specialPrep)?.description}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -383,18 +574,48 @@ export function RequestForm() {
 
           <hr className="border-border" />
 
-          {/* Section 4: Context & Reference */}
-          <div className="space-y-4">
+          {/* Section 4: Clinical Context & Hospital Delivery Point */}
+          <div className="space-y-5">
             <div>
               <h2 className="text-base font-bold text-ink tracking-tight">
-                4. Clinical & Logistics Context
+                4. Clinical Context &amp; Hospital Delivery Point
               </h2>
               <p className="text-xs text-muted mt-0.5">
-                Internal reference identifiers for your emergency department and dispatchers.
+                Point of care destination within the hospital, prior transfusion reaction history, and clinical indication.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Delivery Address / Ward Location */}
+              <div>
+                <label
+                  htmlFor="delivery-ward"
+                  className="block text-xs font-semibold text-slate-700 mb-1.5"
+                >
+                  Hospital Delivery Point / Specific Ward{" "}
+                  <span className="text-brand font-medium">*</span>
+                </label>
+                <div className="relative">
+                  <MapPin
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
+                  />
+                  <input
+                    id="delivery-ward"
+                    value={deliveryWard}
+                    onChange={(e) => setDeliveryWard(e.target.value)}
+                    readOnly={isPending || leaving}
+                    maxLength={150}
+                    placeholder="e.g. Maternity Theatre 2, Trauma Bay 4, ICU Bed 12"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+                  />
+                </div>
+                <span className="text-[10.5px] text-muted block mt-1">
+                  Specifies where courier delivers the cold-chain box inside your facility.
+                </span>
+              </div>
+
+              {/* Clinical Reference / ER Ticket */}
               <div>
                 <label
                   htmlFor="clinical-ref"
@@ -403,63 +624,138 @@ export function RequestForm() {
                   Clinical Reference / ER Ticket{" "}
                   <span className="text-muted font-normal">(optional)</span>
                 </label>
-                <input
-                  id="clinical-ref"
-                  name="clinicalReference"
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  readOnly={isPending || leaving}
-                  maxLength={120}
-                  aria-invalid={Boolean(state.fieldErrors?.clinicalReference?.length)}
-                  placeholder="e.g. ER-88219"
-                  className="w-full h-11 px-4 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-                />
+                <div className="relative">
+                  <Building
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
+                  />
+                  <input
+                    id="clinical-ref"
+                    name="clinicalReference"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                    readOnly={isPending || leaving}
+                    maxLength={120}
+                    aria-invalid={Boolean(state.fieldErrors?.clinicalReference?.length)}
+                    placeholder="e.g. ER-88219 or OB-2026-09"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+                  />
+                </div>
                 <FieldError message={state.fieldErrors?.clinicalReference?.[0]} />
               </div>
+            </div>
 
-              <div>
-                <label
-                  htmlFor="notes"
-                  className="block text-xs font-semibold text-slate-700 mb-1.5"
-                >
-                  Operational Notes <span className="text-muted font-normal">(optional)</span>
+            {/* Transfusion Reaction Safety Checkbox & Details */}
+            <div className="p-4 rounded-2xl border border-border bg-surface-muted/60 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-xs font-bold text-ink block">
+                    Past History of Transfusion Reaction or Irregular Antibodies
+                  </span>
+                  <span className="text-[11px] text-muted block mt-0.5">
+                    Alerts blood bank dispatchers to enforce extended antibody screening and pre-transfusion cross-matching.
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={hasTransfusionReaction}
+                    onChange={(e) => setHasTransfusionReaction(e.target.checked)}
+                    disabled={isPending || leaving}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
                 </label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  readOnly={isPending || leaving}
-                  placeholder="e.g. Urgent surgery scheduled at 17:00, cold-chain box required"
-                  maxLength={2000}
-                  rows={2}
-                  aria-invalid={Boolean(state.fieldErrors?.notes?.length)}
-                  className="w-full p-3 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none"
-                />
-                <span className="text-[10.5px] text-muted block text-right mt-1">
-                  {notes.length}/2,000 characters
-                </span>
-                <FieldError message={state.fieldErrors?.notes?.[0]} />
               </div>
+
+              {hasTransfusionReaction && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-amber-800">
+                    <AlertTriangle size={14} className="text-amber-600" />
+                    <span>Patient Transfusion Reaction Protocol Active</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={reactionDetails}
+                    onChange={(e) => setReactionDetails(e.target.value)}
+                    placeholder="Specify reaction type or antibodies: e.g. Febrile non-hemolytic (FNHTR), Anti-Kell, severe urticaria"
+                    maxLength={200}
+                    disabled={isPending || leaving}
+                    className="w-full h-10 px-3.5 rounded-xl border border-amber-300 bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20"
+                  />
+                  <div className="flex flex-wrap gap-1.5 text-[10.5px]">
+                    <span className="text-muted">Common:</span>
+                    {["Febrile non-hemolytic (FNHTR)", "Urticaria / Allergy", "Anti-Kell", "Anti-D alloantibody"].map(
+                      (preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setReactionDetails(preset)}
+                          className="px-2 py-0.5 rounded-md bg-white border border-border text-slate-600 hover:border-amber-400 hover:text-amber-800 transition-colors"
+                        >
+                          {preset}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Brief Clinical Context (renamed from Operational Notes) */}
+            <div>
+              <label
+                htmlFor="notes"
+                className="block text-xs font-semibold text-slate-700 mb-1.5"
+              >
+                Brief Clinical Context{" "}
+                <span className="text-muted font-normal">(clinical justification &amp; indications)</span>
+              </label>
+              <textarea
+                id="notes"
+                name="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                readOnly={isPending || leaving}
+                placeholder="e.g. Postpartum hemorrhage (PPH) post-emergency Caesarean section, estimated blood loss >1,500 mL, Hb 6.2 g/dL. Cross-match sample dispatched to blood bank."
+                maxLength={1200}
+                rows={3}
+                aria-invalid={Boolean(state.fieldErrors?.notes?.length)}
+                className="w-full p-3 rounded-xl border border-border-strong bg-white text-xs font-medium text-ink placeholder:text-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none"
+              />
+              <div className="flex items-center justify-between mt-1 text-[10.5px] text-muted">
+                <span>Communicated to regional blood bank dispatchers and clinical officers.</span>
+                <span>{notes.length}/1,200 characters</span>
+              </div>
+              <FieldError message={state.fieldErrors?.notes?.[0]} />
             </div>
           </div>
 
           {/* Summary Alert Banner */}
           <div className="p-4 rounded-2xl bg-brand-soft/70 border border-brand/20 flex items-start gap-3 text-xs">
             <AlertCircle size={18} className="text-brand shrink-0 mt-0.5" />
-            <div>
+            <div className="space-y-1">
               <strong className="font-bold text-brand-dark block text-xs">
-                Request Validation Summary
+                Request Validation &amp; Smart Dispatch Summary
               </strong>
-              <p className="text-slate-700 text-[11.5px] mt-0.5 leading-relaxed">
+              <p className="text-slate-700 text-[11.5px] leading-relaxed">
                 Searching for{" "}
                 <strong>
                   {units} unit{units === 1 ? "" : "s"}
                 </strong>{" "}
-                of <strong>{formatBloodGroup(group)}</strong> ({formatComponent(component)}) with{" "}
-                <strong>{formatUrgency(urgency)}</strong> dispatch status. Real-time corridor
-                routing will evaluate currently eligible blood banks, cold-chain telemetry, and
-                Universal O− conservation rules.
+                of <strong>{formatBloodGroup(group)}</strong> (
+                {specialPrep !== "STANDARD"
+                  ? specialPreps.find((p) => p.id === specialPrep)?.label
+                  : formatComponent(component)}
+                ) with <strong>{formatUrgency(urgency)}</strong> dispatch status.
+                {deliveryWard.trim() && (
+                  <> Destination: <strong>{deliveryWard.trim()}</strong>.</>
+                )}
+                {hasTransfusionReaction && (
+                  <span className="text-amber-800 font-semibold block mt-0.5">
+                    ⚠️ Transfusion reaction alert attached. Extended compatibility screening flagged.
+                  </span>
+                )}
               </p>
             </div>
           </div>

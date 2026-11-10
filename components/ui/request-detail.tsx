@@ -1,6 +1,6 @@
 /** Shared request summary and lifecycle timeline used by hospital and provider views. */
 
-import { Check, Clock3, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Check, Clock3, MapPin, ShieldAlert } from "lucide-react";
 import {
   BloodBadge,
   ButtonLink,
@@ -172,29 +172,88 @@ export function ProviderCard({ request }: { request: BloodRequest }) {
 }
 
 export function MetadataCard({ request }: { request: BloodRequest }) {
+  const rawNotes = request.notes ?? "";
+
+  const deliveryMatch = rawNotes.match(/\[DELIVERY POINT:\s*([^\]]+)\]/i);
+  const deliveryPoint = deliveryMatch ? deliveryMatch[1].trim() : null;
+
+  const prepMatch = rawNotes.match(/\[SPECIAL PREPARATION:\s*([^\]]+)\]/i);
+  const specialPrep = prepMatch ? prepMatch[1].trim() : null;
+
+  const reactionMatch = rawNotes.match(
+    /\[ALERT - TRANSFUSION REACTION HISTORY:\s*([^\]]+)\]/i,
+  );
+  const reactionAlert = reactionMatch ? reactionMatch[1].trim() : null;
+
+  const contextMatch = rawNotes.match(/\[CLINICAL CONTEXT:\s*([^\]]+)\]/i);
+  let cleanedNotes = contextMatch ? contextMatch[1].trim() : rawNotes;
+
+  // Clean out the protocol and tag prefixes from display text if not already isolated
+  cleanedNotes = cleanedNotes
+    .replace(/\[EMERGENCY UNKNOWN BLOOD GROUP[^\n\]]*\]/gi, "")
+    .replace(/\[DELIVERY POINT:[^\n\]]*\]/gi, "")
+    .replace(/\[SPECIAL PREPARATION:[^\n\]]*\]/gi, "")
+    .replace(/\[ALERT - TRANSFUSION REACTION HISTORY:[^\n\]]*\]/gi, "")
+    .replace(/\[CLINICAL CONTEXT:[^\n\]]*\]/gi, "")
+    .trim();
+
   return (
     <Panel>
-      <SectionHeader title="Request information" />
-      <div className="grid gap-0 [&>div]:flex [&>div]:justify-between [&>div]:gap-5 [&>div]:py-3 [&>div]:border-b [&>div]:border-[#edf1ef] [&>div:last-child]:border-0 [&>div:last-child]:pb-0 [&_span]:text-muted [&_span]:text-[11px] [&_strong]:text-[11.5px] [&_strong]:text-right [&_strong]:inline-flex [&_strong]:items-center [&_strong]:justify-end [&_strong]:gap-[5px]">
+      <SectionHeader title="Clinical & Logistics Detail" />
+      <div className="grid gap-0 [&>div]:flex [&>div]:justify-between [&>div]:gap-4 [&>div]:py-3 [&>div]:border-b [&>div]:border-[#edf1ef] [&>div:last-child]:border-0 [&>div:last-child]:pb-0 [&_span.meta-label]:text-muted [&_span.meta-label]:text-[11px] [&_span.meta-label]:shrink-0 [&_strong]:text-[11.5px] [&_strong]:text-right">
         <div>
-          <span>Clinical reference</span>
+          <span className="meta-label">Clinical reference</span>
           <strong>{request.clinicalReference ?? "None recorded"}</strong>
         </div>
+
+        {deliveryPoint && (
+          <div>
+            <span className="meta-label">Delivery destination</span>
+            <strong className="text-brand-dark inline-flex items-center gap-1.5 font-semibold">
+              <MapPin size={12} className="text-brand shrink-0" />
+              {deliveryPoint}
+            </strong>
+          </div>
+        )}
+
+        {specialPrep && (
+          <div>
+            <span className="meta-label">Special preparation</span>
+            <strong className="text-brand-dark font-semibold">{specialPrep}</strong>
+          </div>
+        )}
+
+        {reactionAlert && (
+          <div className="bg-amber-50/80 -mx-4 px-4 rounded-xl border border-amber-200">
+            <span className="meta-label text-amber-900 font-bold inline-flex items-center gap-1">
+              <AlertTriangle size={12} className="text-amber-700 shrink-0" />
+              Reaction History
+            </span>
+            <strong className="text-amber-950 font-medium text-left max-w-[240px]">
+              {reactionAlert}
+            </strong>
+          </div>
+        )}
+
         {request.createdBy && (
           <div>
-            <span>Created by</span>
+            <span className="meta-label">Created by</span>
             <strong>{request.createdBy}</strong>
           </div>
         )}
+
         <div>
-          <span>Created</span>
-          <strong>
+          <span className="meta-label">Created</span>
+          <strong className="inline-flex items-center gap-1">
             <Clock3 size={12} /> {request.createdAt}
           </strong>
         </div>
+
         <div>
-          <span>Notes</span>
-          <strong>{request.notes ?? "No operational notes"}</strong>
+          <span className="meta-label">Clinical context</span>
+          <strong className="text-left font-normal text-slate-700 max-w-[260px] break-words">
+            {cleanedNotes.length > 0 ? cleanedNotes : "None recorded"}
+          </strong>
         </div>
       </div>
     </Panel>

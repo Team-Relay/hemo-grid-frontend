@@ -39,10 +39,10 @@ const groupLabels: Record<BloodGroup, string> = {
 };
 
 const componentLabels: Record<BloodComponent, string> = {
-  WHOLE_BLOOD: "Whole Blood",
-  RED_CELLS: "Red Cells",
-  PLATELETS: "Platelets",
-  PLASMA: "Plasma",
+  WHOLE_BLOOD: "Whole Blood (WB)",
+  RED_CELLS: "Red Cells (PRBC)",
+  PLATELETS: "Platelets (PLT)",
+  PLASMA: "Fresh Frozen Plasma (FFP)",
 };
 
 const statusLabels: Record<BloodRequestStatus, string> = {
