@@ -246,16 +246,7 @@ export function AppShell({
           aria-label="Main navigation"
           id="app-main-navigation"
         >
-          <div className="sr-only">
-            <span>Navigation</span>
-            <button
-              type="button"
-              onClick={() => setMobileNavigationOpen(false)}
-              aria-label="Close navigation"
-            >
-              <X size={20} strokeWidth={1.8} />
-            </button>
-          </div>
+
 
           {config.items.map(({ label, href, icon: Icon }) => {
             const active =
