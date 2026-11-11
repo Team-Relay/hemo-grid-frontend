@@ -8,6 +8,12 @@
 
 **Judge access:** [Open the demo](https://hemogrid-eight.vercel.app/login), select **Hospital**, **Blood bank** or **Platform admin**, and click **Continue to workspace**. The role's synthetic email and password are **already filled in**. **Do not enter personal credentials.** [See the 90-second guide](docs/JUDGE_START_HERE.md).
 
+**Mission Control · Actual hosted coordinator workspace**
+
+[![HemoGrid Mission Control dashboard, showing the emergency dispatch decision and the coordinator's planning entry point](public/judges/mission-control.png)](https://hemogrid-eight.vercel.app/login)
+
+*Screenshot captured from the deployed Platform admin workspace with synthetic data. Not a clinical operations feed.*
+
 **One working system. Three accountable roles.** A hospital requests blood, a network coordinator can preview supplier allocations across competing emergencies, and a blood bank verifies and reserves the stock before fulfilment. HemoGrid evaluates recorded inventory, configured group rules, quarantine evidence and estimated routes rather than distance alone.
 
 **Why it matters:** In a controlled synthetic benchmark of 1,072 red-cell requests, a nearest-site choice failed at least one configured eligibility check for **749 requests**. [See the method, baselines and tradeoffs](https://github.com/Team-Relay/hemo-grid-backend#ai-and-data). This is **not** a clinical outcome or a measured delivery-time improvement.
