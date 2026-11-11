@@ -1,10 +1,20 @@
 # Team Relay: HemoGrid emergency blood dispatch
 
-**The closest blood bank is not always the right one.**
+> ### The closest blood bank is not always the right one.
 
-**Terumo BCT Africa Hackathon 2026 · Challenge: Emergency request and dispatch**
+**Terumo BCT Africa Hackathon 2026 · Emergency request and dispatch**
 
-HemoGrid is a demonstration of how hospitals and blood banks can coordinate urgent red-cell requests using recorded inventory, quarantine flags, compatibility rules, and transport estimates. It gives each responsible officer a proposal they can inspect and change before the supplying bank reserves stock. A network coordinator can also preview joint supplier plans for two to five staff-approved critical requests competing for the same stock.
+**[Launch the live prototype](https://hemogrid-eight.vercel.app/login)** · **[Judges: start here (2 minutes)](docs/JUDGE_START_HERE.md)** · [Backend and evaluation](https://github.com/Team-Relay/hemo-grid-backend) · [Verified hosted transaction](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
+
+**One working system. Three accountable roles.** A hospital requests blood, a network coordinator can preview supplier allocations across competing emergencies, and a blood bank verifies and reserves the stock before fulfilment. HemoGrid evaluates recorded inventory, configured group rules, quarantine evidence and estimated routes rather than distance alone.
+
+**Why it matters:** In a controlled synthetic benchmark of 1,072 red-cell requests, a nearest-site choice failed at least one configured eligibility check for **749 requests**. [See the method, baselines and tradeoffs](https://github.com/Team-Relay/hemo-grid-backend#ai-and-data). This is **not** a clinical outcome or a measured delivery-time improvement.
+
+**Repository guide:** This is the **project's main overview and frontend**. The [backend repository](https://github.com/Team-Relay/hemo-grid-backend) contains the API, inventory transactions, planner and reproducible evaluation. Both repositories form **one submission**. For the fastest review, open the [judges' guide](docs/JUDGE_START_HERE.md).
+
+*All scenarios are synthetic. The prototype does not replace clinical crossmatching, staff authorization or physical dispatch.*
+
+---
 
 ## The problem
 
@@ -54,6 +64,7 @@ This was **a synthetic software lifecycle test**, not an actual shipment, clinic
 
 | Resource | URL or status |
 | --- | --- |
+| Primary project guide | [Judges: start here](docs/JUDGE_START_HERE.md) |
 | Frontend | [HemoGrid web app](https://hemogrid-eight.vercel.app) |
 | Backend | [API health](https://hemo-grid-backend.onrender.com/actuator/health) |
 | API reference | [Swagger UI](https://hemo-grid-backend.onrender.com/swagger-ui.html) |
@@ -61,7 +72,7 @@ This was **a synthetic software lifecycle test**, not an actual shipment, clinic
 | Video (3 minutes maximum) | Recording link pending |
 | Pitch slides (8 maximum) | Deck link pending |
 
-The public frontend and backend have passed [hosted three-role API and browser checks](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42945618277). Live availability should still be checked before presenting.
+The public frontend and backend have passed [hosted three-role API and browser checks](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42957499126), including compact desktop and mobile login layouts. Live availability should still be checked before presenting.
 
 **Synthetic demonstration logins:** Hospital `hospital.demo@hemogrid.local` / `HospitalDemo123!`; bank `bank.demo@hemogrid.local` / `BankDemo123!`; coordinator `admin.demo@hemogrid.local` / `AdminDemo123!`. Additional regional bank accounts are documented in the backend README. Do not use these shared passwords with real data.
 
