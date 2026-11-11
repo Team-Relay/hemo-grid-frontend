@@ -142,6 +142,8 @@ export interface BackendInventoryItem {
   unitsAvailable: number;
   unitsReserved: number;
   unitsFree: number;
+  dispatchableUnitsFree?: number;
+  coldChainVerified?: boolean;
   updatedAt: string;
   quarantinedTempExcursionUnits?: number;
   fridgeTempCelsius?: number;
