@@ -10,6 +10,7 @@ import {
   FileHeart,
   Menu,
   Network,
+  Sparkles,
   WifiOff,
   X,
 } from "lucide-react";
@@ -26,6 +27,7 @@ import {
   getBloodRequestCandidates,
   listBloodRequests,
 } from "@/lib/api/blood-requests";
+import { listDispatchPlanRequests } from "@/lib/api/dispatch-plans";
 import { listInventory } from "@/lib/api/inventory";
 import { getCurrentOrganization } from "@/lib/api/organizations";
 import { getProviderRequest, listProviderRequests } from "@/lib/api/provider-requests";
@@ -62,6 +64,7 @@ const roleConfig = {
   admin: {
     items: [
       { label: "Command centre", href: "/admin/dashboard", icon: Command },
+      { label: "Dispatch planner", href: "/admin/dispatch-planner", icon: Sparkles },
       { label: "Facilities", href: "/admin/facilities", icon: Building2 },
       { label: "Network inventory", href: "/admin/inventory", icon: Boxes },
       { label: "Requests", href: "/admin/requests", icon: FileHeart },
@@ -163,6 +166,11 @@ async function syncRouteWithBackend(pathname: string, accessToken: string): Prom
       getProviderRequest(accessToken, providerDetailRoute[1]),
       listInventory(accessToken),
     ]);
+    return;
+  }
+
+  if (pathname === "/admin/dispatch-planner") {
+    await listDispatchPlanRequests(accessToken);
     return;
   }
 

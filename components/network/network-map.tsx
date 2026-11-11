@@ -3,7 +3,7 @@
 "use client";
 
 import { Building2, Cross, LocateFixed, MapPin, Minus, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@/components/ui/core";
 import { organizations } from "@/lib/mock/data";
@@ -17,12 +17,14 @@ export function NetworkMap({
   selectedId?: string;
   title?: string;
 }) {
-  const [selectedFacilityId, setSelectedFacilityId] = useState(selectedId);
+  const [manualSelection, setManualSelection] = useState<{
+    forProp: string;
+    value: string;
+  } | null>(null);
   const [zoom, setZoom] = useState(1);
 
-  useEffect(() => {
-    setSelectedFacilityId(selectedId);
-  }, [selectedId]);
+  const selectedFacilityId =
+    manualSelection?.forProp === selectedId ? manualSelection.value : selectedId;
   const selectedFacility =
     organizations.find((organization) => organization.id === selectedFacilityId) ??
     organizations[1];
@@ -62,7 +64,7 @@ export function NetworkMap({
                   organization.type === "HOSPITAL" ? "marker-hospital" : "marker-bank",
                   organization.networkStatus === "DEGRADED" && "marker-warning",
                 )}
-                onClick={() => setSelectedFacilityId(organization.id)}
+                onClick={() => setManualSelection({ forProp: selectedId, value: organization.id })}
                 aria-label={`Select ${organization.name}`}
                 aria-pressed={selected}
               >
@@ -106,7 +108,7 @@ export function NetworkMap({
           type="button"
           onClick={() => {
             setZoom(1);
-            setSelectedFacilityId(selectedId);
+            setManualSelection(null);
           }}
           aria-label="Reset map view"
         >

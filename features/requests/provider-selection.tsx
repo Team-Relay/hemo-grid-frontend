@@ -82,6 +82,21 @@ export function ProviderSelection({
           setState({ message: "This request or provider is no longer available." });
           return;
         }
+        if (
+          error.status === 409 ||
+          error.code === "COLD_CHAIN_HOLD" ||
+          error.code === "INSUFFICIENT_INVENTORY" ||
+          error.code === "INVALID_REQUEST_STATUS"
+        ) {
+          setState({
+            message:
+              error.code === "COLD_CHAIN_HOLD"
+                ? `${error.message} Live cold-chain checks have been refreshed.`
+                : error.message,
+          });
+          router.refresh();
+          return;
+        }
         setState({ message: error.message });
         return;
       }

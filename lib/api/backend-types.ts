@@ -29,6 +29,7 @@ export type ApiErrorCode =
   | "INVALID_REQUEST_STATUS"
   | "INVALID_STATUS_TRANSITION"
   | "INSUFFICIENT_INVENTORY"
+  | "COLD_CHAIN_HOLD"
   | "PROVIDER_NOT_SELECTED"
   | "ORGANIZATION_INACTIVE"
   | "ORGANIZATION_TYPE_MISMATCH"
@@ -145,4 +146,51 @@ export interface BackendInventoryItem {
   fridgeTempCelsius?: number;
   coldChainStatus?: ColdChainStatus;
   expiringWithin7DaysUnits?: number;
+}
+
+export type DispatchPlanStatus = "OPTIMAL" | "FEASIBLE" | "INFEASIBLE" | "LIMIT_REACHED";
+
+export interface BackendDispatchBaselineAssignment {
+  orderId: string;
+  stockId: string;
+  transitHours: number;
+}
+
+export interface BackendDispatchBaseline {
+  status: DispatchPlanStatus;
+  assignments: BackendDispatchBaselineAssignment[];
+  totalTransitHours: number | null;
+  visitedNodes: number;
+}
+
+export interface BackendDispatchProposal {
+  requestId: string;
+  requesterOrganizationId: string;
+  providerOrganizationId: string;
+  providerName: string;
+  offeredBloodGroup: BloodGroup;
+  inventoryId: string;
+  inventoryVersion: number;
+  unitsRequired: number;
+  dispatchableUnitsAtPlanning: number;
+  unitsRemainingAfterWholePlan: number;
+  estimatedTransitHours: number;
+  recordedFridgeTempCelsius: number;
+  inventoryUpdatedAt: string;
+  rationale: string;
+}
+
+export interface BackendDispatchPlanResponse {
+  generatedAt: string;
+  status: DispatchPlanStatus;
+  totalEstimatedTransitHours: number | null;
+  visitedNodes: number;
+  nearestEligibleBaseline: BackendDispatchBaseline;
+  proposals: BackendDispatchProposal[];
+  notes: string[];
+}
+
+export interface CreateDispatchPlanRequest {
+  requestIds: string[];
+  staffApproved: true;
 }

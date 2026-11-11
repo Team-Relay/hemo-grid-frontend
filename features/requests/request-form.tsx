@@ -333,7 +333,7 @@ export function RequestForm() {
                   <div className="p-2.5 rounded-xl bg-white/80 border border-amber-300 text-[11px] font-medium text-amber-900 flex items-start gap-2">
                     <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
                     <span>
-                      <strong>Stewardship Notice:</strong> Routine priority selected for O− blood. Please confirm whether patient is verified O− negative, or select the patient's type-specific group to conserve the national universal reserve.
+                      <strong>Stewardship Notice:</strong> Routine priority selected for O− blood. Please confirm whether patient is verified O− negative, or select the patient&apos;s type-specific group to conserve the national universal reserve.
                     </span>
                   </div>
                 )}

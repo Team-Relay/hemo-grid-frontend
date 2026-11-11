@@ -153,6 +153,22 @@ export function ProviderRequestDetail({
           });
           return;
         }
+        if (
+          error.status === 409 ||
+          error.code === "COLD_CHAIN_HOLD" ||
+          error.code === "INSUFFICIENT_INVENTORY" ||
+          error.code === "INVALID_REQUEST_STATUS"
+        ) {
+          setState({
+            message:
+              error.code === "COLD_CHAIN_HOLD"
+                ? `${error.message} Live cold-chain status has been refreshed.`
+                : error.message,
+            completedAt: Date.now(),
+          });
+          router.refresh();
+          return;
+        }
         setState({ message: error.message, completedAt: Date.now() });
         return;
       }
