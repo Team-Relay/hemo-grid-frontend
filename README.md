@@ -4,7 +4,7 @@
 
 **Terumo BCT Africa Hackathon 2026 · Emergency request and dispatch**
 
-**[Launch the live prototype](https://hemogrid-eight.vercel.app/login)** · **[Judges: start here (2 minutes)](docs/JUDGE_START_HERE.md)** · [Backend and evaluation](https://github.com/Team-Relay/hemo-grid-backend) · [Verified hosted transaction](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
+**[Launch the live prototype](https://hemogrid-eight.vercel.app/login)** · **[Demo video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq)** · **[Pitch slides](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1)** · **[Judges: start here (2 minutes)](docs/JUDGE_START_HERE.md)** · [Backend and evaluation](https://github.com/Team-Relay/hemo-grid-backend) · [Verified hosted transaction](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
 
 **Judge access:** [Open the demo](https://hemogrid-eight.vercel.app/login), select **Hospital**, **Blood bank** or **Platform admin**, and click **Continue to workspace**. The role's synthetic email and password are **already filled in**. **Do not enter personal credentials.** [See the 90-second guide](docs/JUDGE_START_HERE.md).
 
@@ -77,8 +77,8 @@ This was **a synthetic software lifecycle test**, not an actual shipment, clinic
 | Backend | [API health](https://hemo-grid-backend.onrender.com/actuator/health) |
 | API reference | [Swagger UI](https://hemo-grid-backend.onrender.com/swagger-ui.html) |
 | Backend source and evidence | [Team-Relay/hemo-grid-backend](https://github.com/Team-Relay/hemo-grid-backend) |
-| Video (3 minutes maximum) | Recording link pending |
-| Pitch slides (8 maximum) | Deck link pending |
+| Video (3 minutes maximum) | [Watch demo video (Tella)](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) |
+| Pitch slides (8 maximum) | [View pitch slides (Google Slides)](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) |
 
 The public frontend and backend have passed [hosted three-role API and browser checks](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42957499126), including compact desktop and mobile login layouts. Live availability should still be checked before presenting.
 
@@ -181,6 +181,14 @@ The design works with compact REST/JSON exchanges and explicit retry/refresh han
 
 Team Relay owns the problem definition, implementation decisions, test interpretation and submission. Development involved AI-assisted code completion, implementation suggestions, debugging, review and documentation. Tools used across team work included Google Antigravity/Gemini/Claude, GitHub Copilot, ChatGPT and Codex. AI assistance does not replace the executable regression suite, reproducible benchmark or team accountability for results.
 
+## Open-source libraries
+
+All third-party npm packages used by the frontend web application are declared in [`package.json`](package.json):
+
+- **Application runtime**: `next` (`16.3.2`), `react` (`19.2.8`), `react-dom` (`19.2.8`), `lucide-react` (`^1.33.0`), `zod` (`^4.4.3`), `server-only` (`^0.0.1`)
+- **Language, styling & linting**: `typescript` (`^5`), `tailwindcss` (`^4`), `@tailwindcss/postcss` (`^4`), `eslint` (`^9`), `eslint-config-next` (`16.3.2`), `prettier` (`^3.9.6`), `@types/node` (`^20`), `@types/react` (`^19`), `@types/react-dom` (`^19`)
+- **Unit & browser verification**: `vitest` (`^4.1.11`), `@vitejs/plugin-react` (`^6.1.0`), `@testing-library/react` (`^16.3.2`), `@testing-library/jest-dom` (`^7.0.1`), `jsdom` (`^29.1.1`), `@playwright/test` (`^1.62.1`), `@axe-core/playwright` (`^4.13.0`)
+
 ## Team
 
 | Member | Role | Country | Presentation |
@@ -191,7 +199,7 @@ Team Relay owns the problem definition, implementation decisions, test interpret
 
 ## Known limits and next steps
 
-1. Record a short, staff-led walkthrough of the coordinator's advisory plan and the hospital-to-bank request lifecycle using only synthetic records.
-2. Publish the three-minute video and eight-slide pitch deck under the submission template, tying benchmark claims to their exact synthetic denominators.
+1. Record or verify a clean rehearsal against the hosted environment using only synthetic records.
+2. Review the published [three-minute demo video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) and [pitch slides](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) under the submission template, keeping benchmark claims tied to their exact synthetic denominators.
 3. Review and classify npm dependency advisories before any production deployment.
 4. Treat clinical validation, real inventory/temperature feeds, unit-level traceability, calibrated travel times and offline/SMS fallbacks as future work.
