@@ -25,7 +25,7 @@ import {
 import { ProviderSelection } from "@/features/requests/provider-selection";
 import { ApiClientError } from "@/lib/api/errors";
 import { getHospitalRequestMatches } from "@/lib/data/hospital";
-import { formatBloodGroup, formatComponent } from "@/lib/domain";
+import { canSelectProviderCandidate, formatBloodGroup, formatComponent } from "@/lib/domain";
 import { requestIdSchema } from "@/lib/validation/blood-request";
 import type { Candidate } from "@/types/domain";
 
@@ -48,7 +48,7 @@ export default async function MatchesPage({
     redirect(`/hospital/requests/${request.id}`);
   }
 
-  const best = candidates.find((candidate) => candidate.canFullyFulfil);
+  const best = candidates.find(canSelectProviderCandidate);
 
   return (
     <div className="space-y-6">
@@ -228,8 +228,8 @@ export default async function MatchesPage({
         ) : (
           <Panel>
             <EmptyState
-              title="No bank can fully fulfil this request"
-              description="Partial matches are listed for visibility, but HemoGrid will not split one request across multiple banks."
+              title="No eligible proposal currently passes the recorded checks"
+              description="Candidate evidence may show insufficient stock or an unresolved cold-chain hold. Qualified staff must confirm suitability before proceeding."
               action={
                 <ButtonLink href={`/hospital/requests/${request.id}`}>View request</ButtonLink>
               }
@@ -314,13 +314,13 @@ export default async function MatchesPage({
                     />
                   </td>
                   <td className="py-3.5 px-4">
-                    {candidate.canFullyFulfil ? (
+                    {canSelectProviderCandidate(candidate) ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-success-soft text-success border border-success/20">
-                        <CheckCircle2 size={13} /> Full Match
+                        <CheckCircle2 size={13} /> Eligible snapshot
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-critical-soft text-critical border border-critical/20">
-                        <XCircle size={13} /> Insufficient Stock
+                        <XCircle size={13} /> {candidate.canFullyFulfil ? "Safety evidence missing or on hold" : "Insufficient Stock"}
                       </span>
                     )}
                   </td>
