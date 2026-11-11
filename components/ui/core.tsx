@@ -201,7 +201,7 @@ export function ColdChainBadge({
         <ThermometerSnowflake size={12} className="text-warning shrink-0" />
         {quarantinedUnits > 0
           ? `${quarantinedUnits} Excursion Quarantined`
-          : "Excursion Quarantined"}
+          : "Cold-chain hold"}
       </span>
     );
   }
