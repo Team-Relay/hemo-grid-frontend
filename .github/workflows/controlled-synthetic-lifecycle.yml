@@ -1,0 +1,31 @@
+name: Controlled synthetic lifecycle proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/controlled-live-lifecycle.mjs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hemogrid-controlled-synthetic-lifecycle
+  cancel-in-progress: false
+
+jobs:
+  run-controlled-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      HEMOGRID_ALLOW_SYNTHETIC_MUTATION: I_CONFIRM_SYNTHETIC_ONLY
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate workflow script syntax
+        run: node --check scripts/controlled-live-lifecycle.mjs
+      - name: Execute one-unit synthetic create-select-accept-deliver rehearsal
+        run: node scripts/controlled-live-lifecycle.mjs
