@@ -69,7 +69,22 @@ export function formatUrgency(value: RequestUrgency) {
   return value.charAt(0) + value.slice(1).toLowerCase();
 }
 export function getFreeUnits(item: InventoryItem) {
-  return Math.max(0, item.availableUnits - item.reservedUnits);
+  // Prefer the authoritative backend quantity, which excludes quarantined stock.
+  // Legacy fixtures without verified telemetry must not appear dispatchable.
+  if (item.dispatchableUnitsFree !== undefined) {
+    return Math.max(0, item.dispatchableUnitsFree);
+  }
+  if (item.coldChainStatus !== "VERIFIED_2_6C") {
+    return 0;
+  }
+  if (item.fridgeTempCelsius === undefined ||
+      item.fridgeTempCelsius < 2 || item.fridgeTempCelsius > 6) {
+    return 0;
+  }
+  return Math.max(
+    0,
+    item.availableUnits - item.reservedUnits - (item.quarantinedTempExcursionUnits ?? 0),
+  );
 }
 export function getStockHealth(free: number): StockHealth {
   if (free <= 2) return "CRITICAL";
