@@ -146,6 +146,7 @@ export function mapInventoryItem(
     component: dto.component,
     availableUnits: dto.unitsAvailable,
     reservedUnits: dto.unitsReserved,
+    dispatchableUnitsFree: dto.dispatchableUnitsFree,
     quarantinedTempExcursionUnits,
     fridgeTempCelsius,
     coldChainStatus,
