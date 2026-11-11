@@ -178,7 +178,7 @@ export function FieldError({
 }
 
 export function ColdChainBadge({
-  verified = true,
+  verified,
   tempCelsius,
   quarantinedUnits = 0,
 }: {
@@ -186,6 +186,15 @@ export function ColdChainBadge({
   tempCelsius?: number;
   quarantinedUnits?: number;
 }) {
+  if (verified === undefined && quarantinedUnits === 0) {
+    return (
+      <span className="w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-surface-muted text-muted border border-border leading-none h-fit">
+        <ThermometerSnowflake size={12} className="shrink-0" />
+        Cold-chain status unavailable
+      </span>
+    );
+  }
+
   if (!verified || quarantinedUnits > 0) {
     return (
       <span className="w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap bg-warning-soft text-amber-800 border border-warning/30 leading-none h-fit">
@@ -206,12 +215,21 @@ export function ColdChainBadge({
 }
 
 export function MatchTypeBadge({
-  matchType = "EXACT",
+  matchType,
   offeredGroup,
 }: {
   matchType?: "EXACT" | "COMPATIBLE_SUBSTITUTE";
   offeredGroup?: BloodGroup;
 }) {
+  if (matchType === undefined) {
+    return (
+      <span className="w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-surface-muted text-muted border border-border leading-none h-fit">
+        <ShieldCheck size={12} className="shrink-0" />
+        Group match not confirmed
+      </span>
+    );
+  }
+
   if (matchType === "COMPATIBLE_SUBSTITUTE") {
     return (
       <span className="w-max inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap bg-info-soft text-info border border-info/25 leading-none h-fit">
