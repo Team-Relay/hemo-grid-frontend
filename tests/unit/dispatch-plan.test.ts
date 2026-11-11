@@ -10,6 +10,7 @@ import {
   formatBatchHandoffText,
   getDispatchPlanStatusMeta,
   getTransitHoursSavedVsBaseline,
+  requiresManualFallback,
   toggleSelectedRequestId,
 } from "@/lib/dispatch-plan";
 import { createDispatchPlanSchema } from "@/lib/validation/dispatch-plan";
@@ -107,6 +108,17 @@ describe("dispatch plan schema validation", () => {
     expect(
       createDispatchPlanSchema.safeParse({ requestIds: [ID_1, ID_2], staffApproved: false }).success,
     ).toBe(false);
+  });
+});
+
+describe("manual human-led fallback policy", () => {
+  it("is offered for failed service calls and incomplete planning, never for valid complete plans", () => {
+    expect(requiresManualFallback(null, true)).toBe(true);
+    expect(requiresManualFallback("INFEASIBLE", false)).toBe(true);
+    expect(requiresManualFallback("LIMIT_REACHED", false)).toBe(true);
+    expect(requiresManualFallback("OPTIMAL", false)).toBe(false);
+    expect(requiresManualFallback("FEASIBLE", false)).toBe(false);
+    expect(requiresManualFallback(null, false)).toBe(false);
   });
 });
 
