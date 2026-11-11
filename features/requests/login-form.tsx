@@ -250,8 +250,14 @@ export function LoginForm() {
 
       <section className="relative flex min-h-screen min-w-0 items-center justify-center bg-[#f7f9fb] px-4 py-8 sm:px-7 sm:py-10 lg:px-[clamp(32px,4.3vw,76px)]">
         <div className="w-full max-w-[476px] rounded-[24px] border border-[#e2e8eb] bg-white px-5 py-7 shadow-[0_24px_64px_rgba(19,42,55,0.055)] sm:px-9 sm:py-9">
-          <div className="mb-8 lg:hidden">
+          <div className="mb-7 lg:hidden">
             <Wordmark variant="plain" />
+            <p className="mb-0 mt-4 max-w-[360px] text-[18px] font-semibold leading-[1.25] tracking-[-0.035em] text-[#123340]">
+              The closest blood bank is not always the right one.
+            </p>
+            <p className="mb-0 mt-2 text-[11px] font-medium text-[#498176]">
+              Emergency blood dispatch · Synthetic demonstration
+            </p>
           </div>
 
           <div className="mb-6">
