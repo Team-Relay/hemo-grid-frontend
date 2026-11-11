@@ -7,7 +7,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   ArrowUpRight,
-  Building2,
   CheckCircle2,
   ClipboardCheck,
   Clock3,
