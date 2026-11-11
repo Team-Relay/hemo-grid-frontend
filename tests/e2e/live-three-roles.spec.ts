@@ -45,6 +45,9 @@ test.describe("hosted three-role demo navigation", () => {
 
   test("coordinator can open the joint dispatch preview workspace", async ({ page }) => {
     await signIn(page, "Platform admin", "/admin/dashboard");
+    await expect(page.getByRole("heading", { name: /closest blood bank is not always the right one/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Open joint dispatch planner/i })).toBeVisible();
+    await expect(page.getByText(/Live Network Telemetry/i)).toHaveCount(0);
     await page.goto("/admin/dispatch-planner", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /Joint dispatch planner/i })).toBeVisible({
       timeout: 60_000,
