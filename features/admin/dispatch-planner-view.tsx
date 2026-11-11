@@ -20,6 +20,7 @@ import {
   Truck,
 } from "lucide-react";
 
+import { logoutAction } from "@/app/actions/auth";
 import {
   BloodBadge,
   Button,
@@ -53,6 +54,7 @@ import {
   formatPlannerDateTime,
   formatProposalHandoffText,
   getDispatchPlanStatusMeta,
+  requiresManualFallback,
   getTransitHoursSavedVsBaseline,
   toggleSelectedRequestId,
 } from "@/lib/dispatch-plan";
@@ -79,6 +81,7 @@ export function DispatchPlannerView({
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [feedback, setFeedback] = useState<PlannerFeedback | null>(null);
+  const [previewUnavailable, setPreviewUnavailable] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const requestsById = useMemo(
@@ -93,6 +96,7 @@ export function DispatchPlannerView({
 
   function clearStaleProposal() {
     setPlan(null);
+    setPreviewUnavailable(false);
   }
 
   function handleToggleRequest(requestId: string) {
@@ -199,11 +203,14 @@ export function DispatchPlannerView({
     }
 
     setIsPreviewing(true);
+    setPlan(null);
+    setPreviewUnavailable(false);
     setFeedback(null);
 
     try {
       const response = await previewDispatchPlan(accessToken, validated.data);
       setPlan(response);
+      setPreviewUnavailable(false);
     } catch (error) {
       if (error instanceof ApiClientError) {
         if (error.status === 401) {
@@ -227,8 +234,11 @@ export function DispatchPlannerView({
             message: `${error.message} The stale proposal was cleared and live requests were refreshed—review updated availability before retrying.`,
           });
           await refreshLiveQueue({ keepFeedback: true });
+          setPreviewUnavailable(true);
           return;
         }
+        clearStaleProposal();
+        setPreviewUnavailable(true);
         setFeedback({
           tone: "critical",
           title: "Preview failed",
@@ -237,6 +247,8 @@ export function DispatchPlannerView({
         return;
       }
 
+      clearStaleProposal();
+      setPreviewUnavailable(true);
       setFeedback({
         tone: "critical",
         title: "Network error",
@@ -267,6 +279,12 @@ export function DispatchPlannerView({
   const statusMeta = plan ? getDispatchPlanStatusMeta(plan.status) : null;
   const showBaselineComparison = plan ? canCompareBaselineTransitHours(plan) : false;
   const hoursSaved = plan ? getTransitHoursSavedVsBaseline(plan) : null;
+  const manualFallbackActive = requiresManualFallback(plan?.status, previewUnavailable);
+  const fallbackReason = previewUnavailable
+    ? "Joint planning is unavailable or its evidence is stale."
+    : plan?.status === "INFEASIBLE"
+      ? "This whole batch cannot be filled from the verified options."
+      : "The solver reached its search limit without a confirmed complete plan.";
 
   return (
     <div className="space-y-5">
@@ -295,6 +313,38 @@ export function DispatchPlannerView({
           message={feedback.message}
           onDismiss={() => setFeedback(null)}
         />
+      )}
+
+      {manualFallbackActive && (
+        <section
+          aria-label="Manual dispatch fallback"
+          className="rounded-2xl border border-amber-300/60 bg-[#fffaf0] p-4 sm:p-5 space-y-3"
+          role="region"
+        >
+          <div>
+            <h2 className="m-0 text-sm font-bold text-[#6e4313]">Manual dispatch fallback · Staff review required</h2>
+            <p className="m-0 mt-1 text-xs leading-relaxed text-[#684e31]">{fallbackReason} No supplier has been approved or reserved by this preview.</p>
+          </div>
+          <ol className="m-0 list-decimal space-y-1.5 pl-5 text-xs leading-relaxed text-[#5f513d]">
+            <li><strong>Coordinator:</strong> Notify the hospital officers and record the communication using established facility procedures. Do not treat the failed batch as a dispatch order.</li>
+            <li><strong>Hospital officer:</strong> Sign in to the existing individual request workflow, refresh the request and assess available, compatible, cold-chain-verified supplier evidence. Select only if an eligible option remains.</li>
+            <li><strong>Supplying bank:</strong> Independently verify stock and safety, then accept or decline. Acceptance uses server-side validation and inventory reservation; subsequent preparation, transit and delivery statuses are recorded.</li>
+          </ol>
+          <div className="flex flex-wrap items-center gap-3">
+            <form action={logoutAction} onSubmit={() => clearClientSessionCookie()}>
+              <button
+                type="submit"
+                className="inline-flex min-h-9 items-center rounded-full border border-[#a97330]/50 bg-white px-4 text-xs font-semibold text-[#6e4313] hover:bg-amber-50"
+              >
+                Sign out and choose hospital or blood-bank workspace
+              </button>
+            </form>
+            <span className="text-[11px] text-[#725a41]">Requires a working backend and live stock checks.</span>
+          </div>
+          <p className="m-0 border-t border-amber-300/40 pt-3 text-[11px] leading-relaxed text-[#715a41]">
+            <strong>Safety if the entire network is offline:</strong> Do not use cached stock or assume a request is accepted. Revert to established telephone/manual verification; digital coordination and automatic offline synchronization are not available. Request status milestones are timestamped in the backend when online, but telephone calls require separate manual records.
+          </p>
+        </section>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">

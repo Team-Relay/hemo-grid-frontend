@@ -142,6 +142,38 @@ test.describe("hosted three-role demo navigation", () => {
     // Do not declare staffApproved or generate proposals without staff approval.
   });
 
+  test("planner outage gives staff a safe individual workflow, without reserving stock", async ({ page }) => {
+    await signIn(page, "Platform admin", "/admin/dashboard");
+    await page.goto("/admin/dispatch-planner", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: /Joint dispatch planner/i })).toBeVisible();
+    const requests = page.locator('button[aria-pressed="false"]');
+    await expect(requests.first()).toBeVisible();
+    await requests.first().click();
+    await requests.first().click();
+    await page.getByRole("checkbox").check();
+
+    // Deliberately disconnect only the joint-preview endpoint. Do not alter
+    // provider selection, inventory or the hosted database.
+    await page.route(/\/api\/v1\/dispatch-plans\/preview$/, (route) =>
+      route.abort("failed"),
+    );
+    await page.getByRole("button", { name: /Preview dispatch plan/i }).click();
+    const fallback = page.getByRole("region", { name: "Manual dispatch fallback" });
+    await expect(fallback).toBeVisible({ timeout: 30_000 });
+    await expect(fallback).toContainText("No supplier has been approved or reserved");
+    await expect(fallback).toContainText("cold-chain-verified");
+    await expect(fallback).toContainText("telephone/manual verification");
+    await fallback.getByRole("button", { name: /Sign out and choose hospital or blood-bank workspace/i }).click();
+
+    await expect(page).toHaveURL(/\/login(?:\?.*)?$/);
+    await page.getByRole("button", { name: "Continue to workspace" }).click();
+    await expect(page).toHaveURL(/\/hospital\/dashboard$/, { timeout: 90_000 });
+    await page.goto("/hospital/requests", { waitUntil: "domcontentloaded" });
+    await assertHealthyPage(page);
+    // Full create/select/accept/deliver + inventory reconciliation is
+    // independently tested in the backend when the planner is forced to fail.
+  });
+
   test("hospital dashboard fits a narrow mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, "Hospital", "/hospital/dashboard");
