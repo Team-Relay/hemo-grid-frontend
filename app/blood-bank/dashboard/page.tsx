@@ -289,7 +289,7 @@ function InventoryHealthCard({ item }: { item: InventoryItem }) {
       </div>
       <div className="pt-1 border-t border-border/60">
         <ColdChainBadge
-          verified={item.coldChainStatus !== "EXCURSION_QUARANTINED"}
+          verified={item.coldChainStatus === "VERIFIED_2_6C" ? true : item.coldChainStatus === "EXCURSION_QUARANTINED" ? false : undefined}
           tempCelsius={item.fridgeTempCelsius}
           quarantinedUnits={item.quarantinedTempExcursionUnits}
         />

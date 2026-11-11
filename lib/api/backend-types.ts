@@ -34,6 +34,7 @@ export type ApiErrorCode =
   | "ORGANIZATION_INACTIVE"
   | "ORGANIZATION_TYPE_MISMATCH"
   | "REQUEST_ALREADY_FINALIZED"
+  | "CONCURRENT_MODIFICATION"
   | "INTERNAL_ERROR";
 
 export interface BackendFieldError {
@@ -141,6 +142,8 @@ export interface BackendInventoryItem {
   unitsAvailable: number;
   unitsReserved: number;
   unitsFree: number;
+  dispatchableUnitsFree?: number;
+  coldChainVerified?: boolean;
   updatedAt: string;
   quarantinedTempExcursionUnits?: number;
   fridgeTempCelsius?: number;

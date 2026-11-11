@@ -322,7 +322,7 @@ export function InventoryTable({ items }: { items: InventoryItem[] }) {
                       </td>
                       <td className="py-3.5 px-4">
                         <ColdChainBadge
-                          verified={item.coldChainStatus !== "EXCURSION_QUARANTINED"}
+                          verified={item.coldChainStatus === "VERIFIED_2_6C" ? true : item.coldChainStatus === "EXCURSION_QUARANTINED" ? false : undefined}
                           tempCelsius={item.fridgeTempCelsius}
                           quarantinedUnits={item.quarantinedTempExcursionUnits}
                         />

@@ -158,13 +158,13 @@ export function ProviderCard({ request }: { request: BloodRequest }) {
           </strong>
         </div>
       </div>
-      {request.status === "REQUESTED" && !request.providerId && (
+      {request.status === "REQUESTED" && (
         <ButtonLink
           href={`/hospital/requests/${request.id}/matches`}
           variant="secondary"
           className="w-full mt-3"
         >
-          View ranked blood banks
+          {request.providerId ? "Change selected blood bank" : "View ranked blood banks"}
         </ButtonLink>
       )}
     </Panel>

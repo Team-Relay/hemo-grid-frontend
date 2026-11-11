@@ -171,8 +171,7 @@ export function HospitalRequestActions({ request }: { request: BloodRequest }) {
               Cancel this request?
             </h2>
             <p className="m-0 text-muted text-xs leading-[1.55]">
-              The request will close immediately. Any selected provider will be notified and
-              reserved inventory will be released automatically.
+              The request will close immediately. The request will be marked cancelled and any reserved stock will be released. The backend does not send an automatic notification.
             </p>
 
             {state.message && (

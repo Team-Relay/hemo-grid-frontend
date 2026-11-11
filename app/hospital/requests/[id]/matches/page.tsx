@@ -25,7 +25,7 @@ import {
 import { ProviderSelection } from "@/features/requests/provider-selection";
 import { ApiClientError } from "@/lib/api/errors";
 import { getHospitalRequestMatches } from "@/lib/data/hospital";
-import { formatBloodGroup, formatComponent } from "@/lib/domain";
+import { canSelectProviderCandidate, formatBloodGroup, formatComponent } from "@/lib/domain";
 import { requestIdSchema } from "@/lib/validation/blood-request";
 import type { Candidate } from "@/types/domain";
 
@@ -44,11 +44,11 @@ export default async function MatchesPage({
   }
 
   const { request, candidates } = data;
-  if (request.status !== "REQUESTED" || request.providerId) {
+  if (request.status !== "REQUESTED") {
     redirect(`/hospital/requests/${request.id}`);
   }
 
-  const best = candidates.find((candidate) => candidate.canFullyFulfil);
+  const best = candidates.find(canSelectProviderCandidate);
 
   return (
     <div className="space-y-6">
@@ -56,7 +56,7 @@ export default async function MatchesPage({
         backHref="/hospital/requests"
         eyebrow={request.reference}
         title="Eligible blood banks"
-        description={`Smart Dispatch ranking for ${request.units} units of ${formatBloodGroup(request.bloodGroup)} ${formatComponent(request.component).toLowerCase()} across ABO/Rh compatibility, Universal O− conservation, cold-chain integrity, and road-corridor transit ETA.`}
+        description={`Smart Dispatch ranking for ${request.units} units of ${formatBloodGroup(request.bloodGroup)} ${formatComponent(request.component).toLowerCase()} using configured group rules, recorded stock and quarantine checks, and estimated transport times.`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_0.85fr] gap-5 items-stretch">
@@ -69,10 +69,10 @@ export default async function MatchesPage({
             </div>
             <div>
               <h2 className="text-lg font-bold text-ink tracking-tight">
-                Clinical Triage &amp; Corridor Evaluation
+                Inventory &amp; Transport Evidence
               </h2>
               <p className="mt-1 max-w-[540px] text-xs leading-relaxed text-muted">
-                Every candidate facility is verified across live clinical compatibility, excursion safety, and verified corridor drive times before recommendation.
+                Candidate rankings use recorded inventory, configured group rules, quarantine checks and seeded transport estimates. Qualified staff must confirm suitability and actual travel arrangements.
               </p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export default async function MatchesPage({
               </span>
               <p className="text-[11px] text-muted leading-relaxed">
                 Ranks eligible RBTCs and satellites by verified road transit hours
-                (2.51h median ETA across 2,162 corridors).
+                (the current seeded corridor estimates).
               </p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default async function MatchesPage({
           <Panel className="p-6 space-y-5 bg-white border border-border shadow-xs relative overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <ShieldCheck size={14} className="text-emerald-600" /> Optimal Clinical Match
+                <ShieldCheck size={14} className="text-emerald-600" /> Top Ranked Eligible Proposal
               </div>
               {best.facilityCode && (
                 <span className="px-2.5 py-0.5 rounded-md bg-surface-muted border border-border text-[11px] font-semibold text-slate-700">
@@ -141,7 +141,7 @@ export default async function MatchesPage({
                   <MapPin size={13} className="text-brand" />
                   {best.distanceKm === undefined
                     ? "Distance pending verification"
-                    : `${best.distanceKm} km road corridor`}
+                    : `${best.distanceKm} km estimated separation`}
                   {best.estimatedTransitHours !== undefined &&
                     ` · ~${best.estimatedTransitHours}h transit ETA`}
                 </p>
@@ -190,7 +190,7 @@ export default async function MatchesPage({
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
                   <strong className="font-semibold text-ink text-xs">
-                    Clinical &amp; Logistics Assessment
+                    Inventory &amp; Dispatch Rationale
                   </strong>
                 </div>
                 <ul className="space-y-1 pl-5 list-disc text-[11px] text-muted leading-relaxed">
@@ -207,7 +207,7 @@ export default async function MatchesPage({
                     Full Request Capacity Verified
                   </strong>
                   <span className="text-emerald-700 text-[11px] block mt-0.5">
-                    Current availability can fulfil all {request.units} requested units.
+                    The recorded stock snapshot indicates sufficient units. Availability is rechecked before the bank accepts.
                   </span>
                 </div>
               </div>
@@ -228,8 +228,8 @@ export default async function MatchesPage({
         ) : (
           <Panel>
             <EmptyState
-              title="No bank can fully fulfil this request"
-              description="Partial matches are listed for visibility, but HemoGrid will not split one request across multiple banks."
+              title="No eligible proposal currently passes the recorded checks"
+              description="Candidate evidence may show insufficient stock or an unresolved cold-chain hold. Qualified staff must confirm suitability before proceeding."
               action={
                 <ButtonLink href={`/hospital/requests/${request.id}`}>View request</ButtonLink>
               }
@@ -314,13 +314,13 @@ export default async function MatchesPage({
                     />
                   </td>
                   <td className="py-3.5 px-4">
-                    {candidate.canFullyFulfil ? (
+                    {canSelectProviderCandidate(candidate) ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-success-soft text-success border border-success/20">
-                        <CheckCircle2 size={13} /> Full Match
+                        <CheckCircle2 size={13} /> Eligible snapshot
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-critical-soft text-critical border border-critical/20">
-                        <XCircle size={13} /> Insufficient Stock
+                        <XCircle size={13} /> {candidate.canFullyFulfil ? "Safety evidence missing or on hold" : "Insufficient Stock"}
                       </span>
                     )}
                   </td>
