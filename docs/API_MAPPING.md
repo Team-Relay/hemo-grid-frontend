@@ -1,54 +1,49 @@
-# Backend-to-frontend API mapping
+# Frontend ↔ backend API mapping
 
-Transport DTOs remain separate from UI view models so either side can evolve
-without forcing markup changes throughout the application.
+HemoGrid's Spring Boot API is authoritative. Next.js uses typed response adapters, not its own clinical clearance or reservation rules. The backend's [API handoff](https://github.com/Team-Relay/hemo-grid-backend/blob/main/docs/FRONTEND_API_HANDOFF.md) and generated [OpenAPI document](https://hemo-grid-backend.onrender.com/v3/api-docs) take precedence over this overview.
 
-| Backend field    | Frontend field   |
-| ---------------- | ---------------- |
-| `unitsRequired`  | `units`          |
-| `unitsAvailable` | `availableUnits` |
-| `unitsReserved`  | `reservedUnits`  |
-| `requester.id`   | `hospitalId`     |
-| `requester.name` | `hospitalName`   |
-| `provider.id`    | `providerId`     |
-| `provider.name`  | `providerName`   |
-| `requestedAt`    | `createdAt`      |
-| `updatedAt`      | `updatedAt`      |
-| lifecycle dates  | `timeline`       |
+## Request and inventory view models
 
-The backend UUID is the canonical request identifier used in URLs. Because the
-current API does not return a separate human-readable reference, the UI derives
-a stable display-only reference from the first eight UUID characters, prefixed
-with `HG-`. It is never sent back to the API.
+| Backend | Frontend | Notes |
+| --- | --- | --- |
+| `id` | `id` | UUID is canonical, including API paths |
+| `requester.id` / `.name` | `hospitalId` / `hospitalName` | Organization-scoped authenticated API |
+| `provider.id` / `.name` | `providerId` / `providerName` | Nullable until a supplier is selected |
+| `unitsRequired` | `units` | Requested units |
+| `requestedAt` / `updatedAt` | `createdAt` / `updatedAt` | Original timestamp from API |
+| `requestedAt`, `acceptedAt`, `preparingAt`, `dispatchedAt`, `deliveredAt`, `cancelledAt` | `timeline` | Only recorded milestones appear |
+| `unitsAvailable` / `unitsReserved` | `availableUnits` / `reservedUnits` | Bank-owned inventory row |
+| `dispatchableUnitsFree` | `dispatchableUnitsFree` | **Preferred supply measure**; excludes quarantined/non-dispatchable stock |
+| `quarantinedTempExcursionUnits`, `fridgeTempCelsius`, `coldChainStatus` | Same-named optional fields | Missing evidence remains missing, never inferred as a healthy reading |
 
-`reservedUnits` is derived as `unitsRequired` only while the request is in
-`ACCEPTED`, `PREPARING`, or `IN_TRANSIT`, matching the current backend inventory
-lifecycle. It is zero for unreserved and terminal states.
+A display-only reference `HG-` + the first eight UUID characters may appear in the interface. It is **not** an alternate backend identifier and is never submitted to the API. The request's displayed `reservedUnits` is a UI estimate based on the lifecycle, not a ledger; use the inventory endpoint for actual reservation accounting.
 
-Request timeline entries will be derived from `requestedAt`, `acceptedAt`,
-`preparingAt`, `dispatchedAt`, `deliveredAt`, and `cancelledAt`.
+For legacy inventory fixtures without `dispatchableUnitsFree`, the UI does **not** display units as dispatchable unless recorded cold-chain conditions allow the conservative calculation.
 
-Candidate location, fulfilment estimate, and map coordinates are not returned by
-the current backend. Those view-model fields must remain optional unless the API
-contract is expanded.
+## Supplier candidate mapping
 
-Candidate mappings:
+| API field | UI value or use |
+| --- | --- |
+| `organizationId`, `organizationName` | Supplier identity |
+| `bloodGroup`, `offeredBloodGroup`, `component` | Requested/offered product evidence |
+| `unitsFree`, `canFullyFulfil`, `rank` | Snapshot availability and ordering |
+| `distanceKm`, `estimatedTransitHours` | Optional estimated travel evidence, never measured ETA |
+| `matchType`, `conservationRuleApplied` | Recorded group-rule evidence |
+| `coldChainVerified`, `fridgeTempCelsius`, `quarantinedUnitsExcluded` | Recorded safety and quarantine evidence |
+| `recommendationReasons` | Backend-provided explanation; absent values show an explicitly labeled fallback explanation |
 
-| Backend candidate field | Frontend candidate field |
-| ----------------------- | ------------------------ |
-| `organizationId`        | `organizationId`         |
-| `organizationName`      | `organizationName`       |
-| `bloodGroup`            | `bloodGroup`             |
-| `component`             | `component`              |
-| `unitsFree`             | `unitsFree`              |
-| `distanceKm`            | `distanceKm`             |
-| `canFullyFulfil`        | `canFullyFulfil`         |
-| `rank`                  | `rank`                   |
+The backend currently supplies distance and transit estimates for eligible candidates where available. The UI does not fabricate these fields when missing. No live map coordinates or observed journey-time series are provided.
 
-Only candidates with `canFullyFulfil === true` are selectable. Spring Boot also
-rechecks current free inventory during selection because the candidate response
-is a snapshot and may become stale.
+A candidate can be selected in the UI only when **all** of these are affirmative: `canFullyFulfil === true`, `coldChainVerified === true`, and a `matchType` is present. This reduces accidental user actions; **the backend remains the authority**, rechecking current stock and safety on selection and bank acceptance.
 
-Request creator, provider location, provider contact details, and transfer
-distance are also absent from `BloodRequestResponse`. The detail UI explicitly
-shows those values as unavailable instead of displaying mock data.
+## Coordinator planner
+
+`GET /api/v1/dispatch-plans/requests` returns pending critical red-cell requests for the network coordinator.
+
+`POST /api/v1/dispatch-plans/preview` requires **2–5 distinct request UUIDs** and a `staffApproved: true` coordinator declaration. The backend returns a solver status (`OPTIMAL`, `FEASIBLE`, `INFEASIBLE`, `LIMIT_REACHED`), optional complete proposals, the nearest-eligible baseline, travel estimates, visited node count and notes. Preview is advisory and **does not reserve inventory**. See the [planner contract](https://github.com/Team-Relay/hemo-grid-backend/blob/main/docs/DISPATCH_PLANNING.md).
+
+## Errors and time
+
+The API exposes an error envelope with HTTP status, application code, message and optional field errors. In particular, `CONCURRENT_MODIFICATION` and `COLD_CHAIN_HOLD` require a fresh server read and staff reconciliation. The frontend never automatically retries a mutating request after a network failure.
+
+Displayed local dates, including the hospital's "today" summary, use **Africa/Nairobi (EAT)**. Backend timestamps remain canonical. Data is synthetic and does not establish clinical release approval or actual physical delivery.
