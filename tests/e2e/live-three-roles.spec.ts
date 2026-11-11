@@ -163,8 +163,7 @@ test.describe("hosted three-role demo navigation", () => {
     await expect(fallback).toContainText("No supplier has been approved or reserved");
     await expect(fallback).toContainText("cold-chain-verified");
     await expect(fallback).toContainText("telephone/manual verification");
-    await expect(fallback.getByRole("link", { name: /Switch to hospital or blood-bank workspace/i })).toHaveAttribute("href", "/login");
-    await fallback.getByRole("link", { name: /Switch to hospital or blood-bank workspace/i }).click();
+    await fallback.getByRole("button", { name: /Sign out and choose hospital or blood-bank workspace/i }).click();
 
     await expect(page).toHaveURL(/\/login(?:\?.*)?$/);
     await page.getByRole("button", { name: "Continue to workspace" }).click();
