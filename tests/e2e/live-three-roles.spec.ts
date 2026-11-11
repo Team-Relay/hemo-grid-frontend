@@ -46,7 +46,7 @@ test.describe("hosted three-role demo navigation", () => {
     await expect(page.getByRole("heading", {
       name: "The closest blood bank is not always the right one.",
     })).toBeVisible();
-    await expect(page.getByText("An illustrative decision path, not live clinical data")).toBeVisible();
+    await expect(page.getByText("Emergency blood dispatch", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue to workspace" })).toBeEnabled();
 
     await page.getByRole("button", { name: "Blood bank", exact: true }).click();
@@ -68,6 +68,47 @@ test.describe("hosted three-role demo navigation", () => {
     expect(size.scrollWidth, "Login must not overflow on mobile").toBeLessThanOrEqual(
       size.viewport + 3,
     );
+  });
+
+  test("minimal login fits desktop and mobile without page scrolling", async ({ page }) => {
+    const sizes = [
+      { width: 1706, height: 788 },
+      { width: 1366, height: 720 },
+      { width: 390, height: 844 },
+      { width: 375, height: 667 },
+      { width: 360, height: 640 },
+    ];
+    for (const size of sizes) {
+      await page.setViewportSize(size);
+      await page.goto("/login", { waitUntil: "domcontentloaded", timeout: 90_000 });
+      await expect(page.getByRole("button", { name: "Continue to workspace" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Continue to workspace" })).toBeEnabled();
+
+      const geometry = await page.evaluate(() => {
+        const root = document.documentElement;
+        const body = document.body;
+        const submit = document.querySelector('form button[type="submit"]');
+        const submitRect = submit?.getBoundingClientRect();
+        return {
+          documentHeight: Math.max(root.scrollHeight, body.scrollHeight),
+          viewportHeight: root.clientHeight,
+          documentWidth: Math.max(root.scrollWidth, body.scrollWidth),
+          viewportWidth: root.clientWidth,
+          submitBottom: submitRect?.bottom,
+          submitTop: submitRect?.top,
+        };
+      });
+      expect(
+        geometry.documentWidth,
+        "Login horizontal overflow at " + size.width + "x" + size.height,
+      ).toBeLessThanOrEqual(geometry.viewportWidth + 2);
+      expect(
+        geometry.documentHeight,
+        "Login page scroll at " + size.width + "x" + size.height,
+      ).toBeLessThanOrEqual(geometry.viewportHeight + 2);
+      expect(geometry.submitTop).toBeGreaterThanOrEqual(0);
+      expect(geometry.submitBottom).toBeLessThanOrEqual(geometry.viewportHeight - 2);
+    }
   });
 
   test("hospital can sign in and view request workspaces", async ({ page }) => {
