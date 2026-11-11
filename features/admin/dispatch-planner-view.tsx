@@ -154,7 +154,8 @@ export function DispatchPlannerView({
       setRefreshedRequests(latest);
       setConnectionUnconfirmed(false);
       setSelectedIds((prev) => prev.filter((id) => validIds.has(id)));
-      clearStaleProposal();
+      if (options?.keepFeedback) setPlan(null);
+      else clearStaleProposal();
       if (!options?.keepFeedback) {
         setFeedback({
           tone: "info",
