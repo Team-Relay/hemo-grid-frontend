@@ -85,8 +85,13 @@ async function main() {
   await check("frontend login", web + "/login", 200, { retries: 2 });
   const health = await check("backend health", api + "/actuator/health", 200, { retries: 2 });
   assert.equal(health?.status, "UP");
-  const ready = await check("backend readiness", api + "/actuator/health/readiness", 200, { retries: 1 });
-  assert.equal(ready?.status, "UP");
+  // Check readiness, but continue collecting role diagnostics if it is blocked.
+  const readiness = await call(api + "/actuator/health/readiness", { retries: 1 });
+  if (readiness.status !== 200 || readiness.data?.status !== "UP") {
+    console.log("WARN readiness HTTP " + readiness.status + "; continuing role checks before failing");
+  } else {
+    console.log("PASS backend readiness HTTP 200");
+  }
   const spec = await check("OpenAPI", api + "/v3/api-docs", 200);
   const paths = [
     "/api/v1/auth/login", "/api/v1/auth/me", "/api/v1/blood-requests",
@@ -124,6 +129,8 @@ async function main() {
     }
   }
   console.log("PASS all three roles and authorization. No requests, stock, or dispatch plans modified.");
+  assert.equal(readiness.status, 200, "Backend readiness remains inaccessible");
+  assert.equal(readiness.data?.status, "UP", "Backend readiness must be UP");
 }
 
 main().catch(error => {
