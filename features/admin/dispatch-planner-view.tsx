@@ -8,6 +8,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Check,
   CheckSquare,
@@ -80,6 +81,9 @@ export function DispatchPlannerView({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [feedback, setFeedback] = useState<PlannerFeedback | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [manualFallback, setManualFallback] = useState(false);
+  const [plannerFailure, setPlannerFailure] = useState<string | null>(null);
+  const [connectionUnconfirmed, setConnectionUnconfirmed] = useState(false);
 
   const requestsById = useMemo(
     () => new Map(requests.map((request) => [request.id, request])),
@@ -93,6 +97,7 @@ export function DispatchPlannerView({
 
   function clearStaleProposal() {
     setPlan(null);
+    setPlannerFailure(null);
   }
 
   function handleToggleRequest(requestId: string) {
@@ -147,6 +152,7 @@ export function DispatchPlannerView({
       const latest = await listDispatchPlanRequests(accessToken);
       const validIds = new Set(latest.map((item) => item.id));
       setRefreshedRequests(latest);
+      setConnectionUnconfirmed(false);
       setSelectedIds((prev) => prev.filter((id) => validIds.has(id)));
       clearStaleProposal();
       if (!options?.keepFeedback) {
@@ -162,6 +168,9 @@ export function DispatchPlannerView({
         handleSessionExpired();
         return;
       }
+      setConnectionUnconfirmed(true);
+      clearStaleProposal();
+      setManualFallback(true);
       setFeedback({
         tone: "critical",
         title: "Could not refresh queue",
@@ -200,10 +209,19 @@ export function DispatchPlannerView({
 
     setIsPreviewing(true);
     setFeedback(null);
+    setPlannerFailure(null);
+    setPlan(null); // Never display a past proposal as if it survived a failed preview.
 
     try {
       const response = await previewDispatchPlan(accessToken, validated.data);
       setPlan(response);
+      setConnectionUnconfirmed(false);
+      if (response.status === "INFEASIBLE" || response.status === "LIMIT_REACHED") {
+        setManualFallback(true);
+        setPlannerFailure(response.status);
+      } else {
+        setPlannerFailure(null);
+      }
     } catch (error) {
       if (error instanceof ApiClientError) {
         if (error.status === 401) {
@@ -219,6 +237,8 @@ export function DispatchPlannerView({
           return;
         }
         if (isDispatchPlanConflictError(error) || error.status === 404) {
+          setManualFallback(true);
+          setPlannerFailure("STALE_EVIDENCE");
           clearStaleProposal();
           setStaffApproved(false);
           setFeedback({
@@ -229,6 +249,9 @@ export function DispatchPlannerView({
           await refreshLiveQueue({ keepFeedback: true });
           return;
         }
+        setManualFallback(true);
+        setPlannerFailure("PREVIEW_ERROR");
+        setConnectionUnconfirmed(error.code === "NETWORK_ERROR" || error.code === "NETWORK_TIMEOUT");
         setFeedback({
           tone: "critical",
           title: "Preview failed",
@@ -237,6 +260,9 @@ export function DispatchPlannerView({
         return;
       }
 
+      setManualFallback(true);
+      setPlannerFailure("PREVIEW_ERROR");
+      setConnectionUnconfirmed(true);
       setFeedback({
         tone: "critical",
         title: "Network error",
@@ -296,6 +322,67 @@ export function DispatchPlannerView({
           onDismiss={() => setFeedback(null)}
         />
       )}
+
+      <section aria-label="Staff-controlled fallback" className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="m-0 text-[13px] font-semibold text-amber-950">
+              Staff-controlled fallback
+            </h2>
+            <p className="m-0 mt-1 text-[11.5px] leading-5 text-amber-900">
+              Joint planning is optional. Hospitals can review individual supplier candidates and banks independently confirm reservations.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setManualFallback((current) => !current)}
+            aria-expanded={manualFallback}
+          >
+            {manualFallback ? "Hide manual steps" : "Use individual workflow"}
+          </Button>
+        </div>
+        {manualFallback && (
+          <div className="space-y-3 border-t border-amber-200 pt-3" role="region" aria-label="Individual dispatch fallback instructions">
+            {plannerFailure && (
+              <p role="status" className="m-0 text-[12px] font-semibold text-amber-950">
+                Joint proposal unavailable ({plannerFailure.replaceAll("_", " ").toLowerCase()}). No supplier has been automatically selected.
+              </p>
+            )}
+            <ol className="m-0 list-decimal space-y-1.5 pl-5 text-[12px] leading-5 text-amber-950">
+              <li>Coordinator contacts each requesting hospital; the hospital officer signs in to their own account and opens their request's candidate list.</li>
+              <li>Hospital staff verify <strong>current</strong> full-quantity stock, blood-group eligibility, quarantine and recorded cold-chain evidence. They may reject every option or select an eligible provider.</li>
+              <li>Supplying blood-bank staff independently accept or decline. Server-side rechecks and inventory locks remain mandatory; delivery and reservation changes are recorded by the existing workflow.</li>
+            </ol>
+            {selectedIds.length > 0 && (
+              <div className="rounded-lg border border-amber-200 bg-white/70 p-3">
+                <p className="m-0 mb-2 text-[11px] font-semibold text-amber-950">Request handoff (identifiers only; not confirmed allocations)</p>
+                {selectedIds.map((id) => {
+                  const request = requestsById.get(id);
+                  return (
+                    <p key={id} className="m-0 mt-1 break-all font-mono text-[10.5px] text-amber-950">
+                      {request?.requester.name ?? "Hospital"} · {id} · {request?.unitsRequired ?? "?"} units
+                    </p>
+                  );
+                })}
+              </div>
+            )}
+            {connectionUnconfirmed ? (
+              <p role="alert" className="m-0 rounded-lg border border-red-200 bg-red-50 p-3 text-[12px] leading-5 text-red-900">
+                Connection unavailable: the displayed stock may be stale. Do not confirm a supplier, reservation or delivery from this screen. Use established telephone coordination and reconcile records after connectivity returns. This is not an offline digital dispatch mode.
+              </p>
+            ) : (
+              <p className="m-0 text-[11.5px] leading-5 text-amber-900">
+                This coordinator account cannot approve a hospital's selection or reserve stock. Each institution must sign in under its own role. Refresh live evidence before acting.
+              </p>
+            )}
+            <Link href="/login" className="inline-flex min-h-9 items-center rounded-lg bg-amber-950 px-3 text-[12px] font-semibold text-white hover:bg-amber-900">
+              Switch to hospital or blood-bank demo role
+            </Link>
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         <div className="lg:col-span-5 space-y-5">
