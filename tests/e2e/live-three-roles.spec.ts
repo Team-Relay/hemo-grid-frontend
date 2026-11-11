@@ -61,7 +61,7 @@ test.describe("hosted three-role demo navigation", () => {
     await expect(openNav).toBeVisible();
     await openNav.click();
     await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Requests", exact: true })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Requests", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Close navigation" }).click();
     await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeHidden();
     const size = await page.evaluate(() => ({
