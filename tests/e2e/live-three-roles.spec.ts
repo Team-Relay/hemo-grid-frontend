@@ -142,6 +142,40 @@ test.describe("hosted three-role demo navigation", () => {
     // Do not declare staffApproved or generate proposals without staff approval.
   });
 
+  test("failed joint preview exposes safe staff workflow without issuing any allocation", async ({ page }) => {
+    await signIn(page, "Platform admin", "/admin/dashboard");
+    await page.goto("/admin/dispatch-planner", { waitUntil: "domcontentloaded" });
+    await expect(page.getByText("Staff-controlled fallback", { exact: true })).toBeVisible();
+
+    // Controlled synthetic test only: intercept the preview and return an error.
+    // This does not ask the live coordinator service to approve requests or change stock.
+    let previewAttempts = 0;
+    await page.route("**/dispatch-plans/preview", async (route) => {
+      previewAttempts += 1;
+      await route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: 503,
+          code: "PLANNING_UNAVAILABLE",
+          message: "Simulated joint-planning outage for browser regression",
+        }),
+      });
+    });
+    const oldest = page.getByRole("button", { name: "Select oldest 2" });
+    await expect(oldest).toBeVisible();
+    await oldest.click();
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Preview dispatch plan" }).click();
+    await expect(page.getByText("Simulated joint-planning outage for browser regression")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Individual dispatch fallback instructions" })).toBeVisible();
+    await expect(page.getByText(/No supplier has been automatically selected/)).toBeVisible();
+    await expect(page.getByText(/Hospital staff verify/)).toBeVisible();
+    await expect(page.getByRole("link", { name: "Switch to hospital or blood-bank demo role" })).toHaveAttribute("href", "/login");
+    expect(previewAttempts).toBe(1);
+    await page.unroute("**/dispatch-plans/preview");
+  });
+
   test("hospital dashboard fits a narrow mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, "Hospital", "/hospital/dashboard");
