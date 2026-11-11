@@ -146,22 +146,22 @@ export function LoginForm() {
         <div className="relative z-10 flex items-center justify-between gap-5">
           <Wordmark variant="plain" />
           <span className="inline-flex items-center gap-2 text-[11px] font-light text-muted">
-            <ShieldCheck size={14} strokeWidth={1.8} /> Verified network access
+            <ShieldCheck size={14} strokeWidth={1.8} /> Synthetic demo access
           </span>
         </div>
 
         <div className="relative z-10 max-w-[610px] py-10">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2 text-[11px] font-semibold text-success shadow-[0_2px_10px_rgba(18,183,106,0.06)]">
             <i className="h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_0_4px_rgba(18,183,106,0.12)]" />
-            Regional blood grid operational
+            HemoGrid demonstration network
           </span>
           <h1 className="mt-7 max-w-[610px] text-[clamp(36px,3.15vw,46px)] font-medium leading-[1.05] tracking-[-0.04em] text-ink">
             <span className="whitespace-nowrap">Critical blood coordination,</span> without the
             noise.
           </h1>
           <p className="mt-6 max-w-[510px] text-[15px] font-light leading-7 text-muted">
-            One secure operational view connecting hospitals, cold-chain verified inventory, and
-            ABO/Rh smart dispatch across the regional transfusion network.
+            An authenticated demonstration linking hospitals, recorded inventory and
+            staff-reviewed blood-dispatch proposals across a synthetic Kenyan network.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-[11px] text-[#46534f]">
             <span className="inline-flex items-center gap-2">
@@ -171,7 +171,7 @@ export function LoginForm() {
               <ThermometerSnowflake size={15} className="text-brand" /> 2°C–6°C cold-chain guard
             </span>
             <span className="inline-flex items-center gap-2">
-              <Activity size={15} className="text-brand" /> Road-corridor ETA routing
+              <Activity size={15} className="text-brand" /> Estimated corridor transit
             </span>
           </div>
         </div>
@@ -183,11 +183,11 @@ export function LoginForm() {
                 Network visibility
               </strong>
               <span className="mt-1 block text-[10px] font-light text-muted">
-                Live operational coverage across 6 RBTCs, 9 Satellites &amp; 32 Hospitals
+                Synthetic Kenyan network with 47 modeled facilities
               </span>
             </div>
             <span className="inline-flex items-center gap-2 rounded-full bg-success-soft px-2.5 py-1.5 text-[10px] font-semibold text-success">
-              <i className="h-1.5 w-1.5 rounded-full bg-current" /> Live
+              <i className="h-1.5 w-1.5 rounded-full bg-current" /> Demo
             </span>
           </div>
 
@@ -204,9 +204,9 @@ export function LoginForm() {
 
           <div className="grid grid-cols-3 border-t border-border pt-4">
             {[
-              ["47", "Connected facilities"],
-              ["94.6%", "Emergency match rate"],
-              ["2.51h", "Median road ETA"],
+              ["47", "Seeded facilities"],
+              ["2–5", "Requests per joint preview"],
+              ["3", "Staff workspaces"],
             ].map(([value, label], index) => (
               <div
                 className={cn("min-w-0", index > 0 && "border-l border-border pl-5")}
