@@ -372,7 +372,7 @@ function InventoryCheck({
           description="Live exact-group stock and fridge excursion quarantine status"
         />
         <ColdChainBadge
-          verified={inventory.coldChainStatus !== "EXCURSION_QUARANTINED"}
+          verified={inventory.coldChainStatus === "VERIFIED_2_6C" ? true : inventory.coldChainStatus === "EXCURSION_QUARANTINED" ? false : undefined}
           tempCelsius={inventory.fridgeTempCelsius}
           quarantinedUnits={quarantined}
         />
