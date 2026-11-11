@@ -47,6 +47,8 @@ test.describe("hosted three-role demo navigation", () => {
       name: "The closest blood bank is not always the right one.",
     })).toBeVisible();
     await expect(page.getByText("Emergency blood dispatch", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Credentials are prefilled\. Choose a role and click Continue/)).toBeVisible();
+    await expect(page.getByText("Already filled")).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue to workspace" })).toBeEnabled();
 
     await page.getByRole("button", { name: "Blood bank", exact: true }).click();
