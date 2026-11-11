@@ -27,6 +27,20 @@ test.describe("hosted three-role demo navigation", () => {
     await expect(page.getByText(/application error: a server-side exception/i)).toHaveCount(0);
   }
 
+  test("sign-in cannot submit credentials before hydration", async ({ browser }) => {
+    const noScriptContext = await browser.newContext({ javaScriptEnabled: false });
+    try {
+      const page = await noScriptContext.newPage();
+      await page.goto("/login", { waitUntil: "domcontentloaded" });
+      const form = page.locator("form").first();
+      await expect(form).toHaveAttribute("method", "post");
+      await expect(page.getByRole("button", { name: "Continue to workspace" })).toBeDisabled();
+      await expect(page).toHaveURL(/\/login$/);
+    } finally {
+      await noScriptContext.close();
+    }
+  });
+
   test("login communicates the dispatch problem and keeps all demo roles accessible", async ({ page }) => {
     await page.goto("/login", { waitUntil: "domcontentloaded", timeout: 90_000 });
     await expect(page.getByRole("heading", {
