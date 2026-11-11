@@ -50,6 +50,14 @@ const STATUS_META: Record<DispatchPlanStatus, DispatchPlanStatusMeta> = {
   },
 };
 
+/** A failed/incomplete batch must never be represented as an approved supplier assignment. */
+export function requiresManualFallback(
+  status: DispatchPlanStatus | null | undefined,
+  previewUnavailable: boolean,
+): boolean {
+  return previewUnavailable || status === "INFEASIBLE" || status === "LIMIT_REACHED";
+}
+
 export function getDispatchPlanStatusMeta(status: DispatchPlanStatus): DispatchPlanStatusMeta {
   return STATUS_META[status];
 }
