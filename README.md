@@ -161,7 +161,7 @@ Candidate views present recorded available stock, offered blood group, match typ
 
 ### If the system is unavailable
 
-There is no complete offline workflow. Staff must revert to their established telephone and manual coordination processes. The interface must never imply that an unconfirmed proposal or stale stock value constitutes clinical clearance.
+If joint planning is `INFEASIBLE`, reaches its search limit, or its preview API fails, the coordinator screen explicitly exposes **Staff-controlled fallback**. This displays the selected hospitals' request IDs (not a fictitious supplier allocation) and the existing individual request workflow. Each authenticated hospital officer independently reviews current candidate evidence and selects or rejects a supplier; the bank accepts and reserves stock after the same server-side stock, eligibility and cold-chain checks. A coordinator cannot approve a hospital's selection or reserve stock. The fallback never creates a supplier automatically. If the server or network is unreachable, HemoGrid cannot verify current inventory or transact offline; the screen warns against relying on stale availability, and staff must coordinate by their established telephone/manual process. A complete offline or SMS workflow remains unimplemented. [Synthetic failure-mode evidence](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/tests/e2e/live-three-roles.spec.ts) and [backend infeasible-batch lifecycle test](https://github.com/Team-Relay/hemo-grid-backend/blob/main/src/test/java/com/sentinel/hemo_grid/planning/application/DispatchPlanServiceIntegrationTests.java).
 
 ## Data
 
