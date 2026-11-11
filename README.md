@@ -161,7 +161,11 @@ Candidate views present recorded available stock, offered blood group, match typ
 
 ### If the system is unavailable
 
-There is no complete offline workflow. Staff must revert to their established telephone and manual coordination processes. The interface must never imply that an unconfirmed proposal or stale stock value constitutes clinical clearance.
+**Implemented human-led fallback:** When the joint planning preview fails or reports `INFEASIBLE` or `LIMIT_REACHED`, the coordinator sees a prominent **Manual dispatch fallback** panel. It explains why the batch cannot be treated as an approved order, gives an authenticated sign-out to switch demo roles, and directs hospital staff to the existing **individual supplier selection** workflow. That workflow checks current eligible stock and cold-chain evidence; the supplying bank must independently accept before reservation. The coordinator never performs hospital or bank actions.
+
+**Verified failure-injection evidence:** [Backend manual fallback integration test](https://github.com/Team-Relay/hemo-grid-backend/blob/main/src/test/java/com/sentinel/hemo_grid/api/ManualDispatchFallbackIntegrationTests.java) forces the coordinator preview to return HTTP 503 and exercises actual hospital selection, bank acceptance, PREPARING → IN_TRANSIT → DELIVERED, timestamped status milestones, and 5→2 stock / 0→3→0 reservation reconciliation on test PostgreSQL. [Hosted browser fallback test](tests/e2e/live-three-roles.spec.ts) interrupts only the preview API and checks that the fallback panel directs users to the still-working hospital workspace. Neither test silently bypasses the server's stock/safety checks.
+
+**Not implemented:** A complete frontend/backend outage still prevents online reservations and confirmations. Staff must use their established telephone and manual coordination procedures, independently verify stock and cold-chain status, and keep a manual communications log. There is no offline database synchronization, SMS gateway or dedicated per-actor audit ledger; the online system records request status timestamps and inventory changes. The interface must never imply an unconfirmed proposal or stale stock value is clinical clearance.
 
 ## Data
 
