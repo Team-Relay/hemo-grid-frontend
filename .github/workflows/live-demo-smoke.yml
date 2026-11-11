@@ -1,0 +1,53 @@
+name: Hosted three-role demonstration smoke
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deployed-api:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check hosted frontend, backend and three role-scoped APIs
+        run: node scripts/live-demo-smoke.mjs
+
+  deployed-browser:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HEMOGRID_LIVE_E2E: '1'
+      PLAYWRIGHT_BASE_URL: https://hemogrid-eight.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Rehearse hospital, blood-bank and coordinator browser navigation
+        run: npx playwright test tests/e2e/live-three-roles.spec.ts --workers=1 --retries=1
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hosted-three-role-playwright
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 1
