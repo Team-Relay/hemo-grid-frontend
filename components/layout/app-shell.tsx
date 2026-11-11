@@ -233,23 +233,20 @@ export function AppShell({
 
   return (
     <div className="min-h-screen">
-      <header className="h-[72px] flex items-center gap-4 px-[clamp(24px,3.25vw,56px)] bg-canvas/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="relative h-[64px] sm:h-[72px] flex items-center gap-2 xl:gap-4 px-4 sm:px-[clamp(24px,3.25vw,56px)] bg-canvas/80 backdrop-blur-md sticky top-0 z-50">
         <Wordmark href={config.items[0].href} />
 
         <nav
-          className={cn("flex gap-[7px] items-center flex-1", mobileNavigationOpen && "flex")}
+          className={cn(
+              "items-center gap-[7px] flex-1 xl:flex xl:min-w-0",
+              mobileNavigationOpen
+                ? "absolute top-full left-0 right-0 z-50 flex flex-col items-stretch border-b border-border bg-white px-4 py-3 shadow-xl xl:static xl:flex-row xl:p-0 xl:border-0 xl:bg-transparent xl:shadow-none"
+                : "hidden",
+            )}
           aria-label="Main navigation"
+          id="app-main-navigation"
         >
-          <div className="hidden">
-            <span>Navigation</span>
-            <button
-              type="button"
-              onClick={() => setMobileNavigationOpen(false)}
-              aria-label="Close navigation"
-            >
-              <X size={20} strokeWidth={1.8} />
-            </button>
-          </div>
+
 
           {config.items.map(({ label, href, icon: Icon }) => {
             const active =
@@ -260,7 +257,7 @@ export function AppShell({
                 key={href}
                 href={href}
                 className={cn(
-                  "h-10 inline-flex items-center gap-[7px] px-4 rounded-full text-[13px] font-[550] transition-transform duration-180 ease-in-out whitespace-nowrap shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:-translate-y-[1px]",
+                  "h-10 inline-flex w-full xl:w-auto items-center gap-[7px] px-4 rounded-full text-[13px] font-[550] transition-transform duration-180 ease-in-out whitespace-nowrap shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:-translate-y-[1px]",
                   active
                     ? "bg-ink text-[#fff] hover:bg-ink hover:text-[#fff]"
                     : "text-muted bg-surface hover:bg-surface-muted hover:text-ink",
@@ -272,17 +269,28 @@ export function AppShell({
               </Link>
             );
           })}
+          {config.action && (
+            <Link
+              href={config.action.href}
+              className="xl:hidden h-10 inline-flex w-full items-center gap-2 rounded-full bg-brand px-4 text-white text-[13px] font-semibold"
+              onClick={() => setMobileNavigationOpen(false)}
+            >
+              {config.action.label}
+            </Link>
+          )}
         </nav>
 
         <ShellTools role={role} config={config} />
 
         <button
           type="button"
-          className="hidden"
-          onClick={() => setMobileNavigationOpen(true)}
-          aria-label="Open navigation"
+          className="xl:hidden h-10 w-10 shrink-0 inline-grid place-items-center rounded-full bg-surface text-ink border border-border"
+          onClick={() => setMobileNavigationOpen((open) => !open)}
+          aria-label={mobileNavigationOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={mobileNavigationOpen}
+          aria-controls="app-main-navigation"
         >
-          <Menu size={19} strokeWidth={1.8} />
+          {mobileNavigationOpen ? <X size={19} /> : <Menu size={19} />}
         </button>
       </header>
 

@@ -57,6 +57,13 @@ test.describe("hosted three-role demo navigation", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, "Hospital", "/hospital/dashboard");
     await assertHealthyPage(page);
+    const openNav = page.getByRole("button", { name: "Open navigation" });
+    await expect(openNav).toBeVisible();
+    await openNav.click();
+    await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Requests", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Close navigation" }).click();
+    await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeHidden();
     const size = await page.evaluate(() => ({
       viewport: document.documentElement.clientWidth,
       scrollWidth: document.documentElement.scrollWidth,
