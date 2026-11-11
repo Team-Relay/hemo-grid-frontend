@@ -1,333 +1,293 @@
-/** Visual admin dashboard preview backed by the Terumo BCT Kenya Blood Network dataset. */
-
+/**
+ * Coordinator mission control. All operational counters use the authenticated
+ * backend's current critical red-cell queue; evaluation findings are explicitly
+ * labeled as outcomes on synthetic test cases, never as live clinical telemetry.
+ */
+import Link from "next/link";
 import {
-  Activity,
-  AlertTriangle,
   ArrowRight,
+  ArrowUpRight,
   Building2,
-  PackageOpen,
-  Radio,
+  CheckCircle2,
+  ClipboardCheck,
+  Clock3,
+  GitBranch,
+  HeartPulse,
+  Layers3,
   Route,
-  ShieldAlert,
-  Sparkles,
+  ShieldCheck,
   ThermometerSnowflake,
+  Truck,
 } from "lucide-react";
-import { NetworkMap } from "@/components/network/network-map";
-import { ActionLink, Panel, SectionHeader, StatCard } from "@/components/ui/core";
-import { activities, dispatchBenchmarkSummary } from "@/lib/mock/data";
 
-const availability = [
-  { g: "O+", n: 256, s: "Healthy", p: 88 },
-  { g: "O−", n: 31, s: "Low", p: 28 },
-  { g: "A+", n: 211, s: "Healthy", p: 76 },
-  { g: "A−", n: 63, s: "Healthy", p: 58 },
-  { g: "B+", n: 168, s: "Healthy", p: 69 },
-  { g: "B−", n: 47, s: "Moderate", p: 43 },
-  { g: "AB+", n: 92, s: "Healthy", p: 62 },
-  { g: "AB−", n: 14, s: "Critical", p: 14 },
-];
+import { BloodBadge } from "@/components/ui/core";
+import { getAdminDispatchPlannerRequests } from "@/lib/data/admin";
 
-export default function AdminDashboard() {
+const steps = [
+  {
+    step: "01",
+    icon: HeartPulse,
+    role: "Hospital officer",
+    title: "Raise the need",
+    description: "Record the blood group, urgency and quantity. Review eligible supplier evidence.",
+  },
+  {
+    step: "02",
+    icon: GitBranch,
+    role: "Network coordinator",
+    title: "Resolve competing needs",
+    description: "Compare joint allocations against nearest-eligible options while respecting shared stock.",
+  },
+  {
+    step: "03",
+    icon: ShieldCheck,
+    role: "Responsible staff",
+    title: "Review the evidence",
+    description: "Check group rules, quarantined stock and recorded cold-chain conditions before action.",
+  },
+  {
+    step: "04",
+    icon: Truck,
+    role: "Supplying blood bank",
+    title: "Confirm and fulfil",
+    description: "Accept and reserve stock, then record preparation, transit and delivery.",
+  },
+] as const;
+
+function timeInNairobi(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "Time unavailable";
+  return new Intl.DateTimeFormat("en-KE", {
+    timeZone: "Africa/Nairobi",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+export default async function AdminDashboard() {
+  const requests = await getAdminDispatchPlannerRequests();
+  const activeHospitals = new Set(requests.map((r) => r.requester.id)).size;
+  const unitsRequested = requests.reduce((sum, r) => sum + r.unitsRequired, 0);
+  const urgentCases = requests.slice(0, 4);
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="text-[11px] font-bold text-brand uppercase tracking-wider block mb-1">
-            National Blood Coordination Network · 6 Regional Hubs · 9 Satellites · 32 Hospitals
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
-            Command Centre &amp; Dispatch Performance
-          </h1>
-          <p className="text-xs sm:text-sm text-muted mt-1 max-w-2xl">
-            Network-wide oversight across 47 regional facilities, 2,162 road corridors, cold-chain
-            telemetry gates, and real-time Smart Dispatch vs. legacy hospital allocation.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-border shadow-xs">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold text-ink">Live Network Telemetry</span>
-          <span className="text-[11px] text-muted border-l border-border pl-2">
-            3,666 Emergency Requisitions
-          </span>
-        </div>
-      </div>
-
-      {/* KPI Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <StatCard
-          label="Participating facilities"
-          value={dispatchBenchmarkSummary.totalFacilities}
-          detail="6 RBTCs · 9 Satellites · 32 Hospitals"
-          icon={Building2}
+    <div className="space-y-6 pb-4">
+      <section className="relative isolate overflow-hidden rounded-[28px] border border-[#1e394c] bg-[#102534] text-white shadow-[0_16px_44px_rgba(15,35,48,0.16)]">
+        <div
+          className="pointer-events-none absolute right-[-100px] top-[-130px] h-[380px] w-[380px] rounded-full border border-cyan-200/15"
+          aria-hidden="true"
         />
-        <StatCard
-          label="Smart Dispatch match rate"
-          value={`${dispatchBenchmarkSummary.hemogridV2FulfilmentPct}%`}
-          detail={`vs ${dispatchBenchmarkSummary.statusQuoFulfilmentPct}% legacy allocation (+25.0%)`}
-          icon={PackageOpen}
-          tone="success"
+        <div
+          className="pointer-events-none absolute right-[-35px] top-[-60px] h-[280px] w-[280px] rounded-full border border-cyan-200/15"
+          aria-hidden="true"
         />
-        <StatCard
-          label="Median road transit ETA"
-          value={`${dispatchBenchmarkSummary.hemogridV2MedianWaitHours}h`}
-          detail={`vs ${dispatchBenchmarkSummary.statusQuoMedianWaitHours}h legacy wait (-50.9%)`}
-          icon={Route}
-        />
-        <StatCard
-          label="Cold-chain units quarantined"
-          value={dispatchBenchmarkSummary.quarantinedExcursionUnitsInStock}
-          detail=">6°C excursion units blocked"
-          icon={ShieldAlert}
-          tone="critical"
-        />
-      </div>
-
-      {/* Smart Dispatch vs Status Quo Benchmark Panel */}
-      <Panel className="p-6 space-y-5 bg-white border border-border shadow-xs">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-brand-dark">
-              <Sparkles size={13} className="text-brand" /> National Clinical Dispatch Performance
-            </span>
-            <h2 className="text-base sm:text-lg font-bold text-ink mt-0.5">
-              HemoGrid Smart Dispatch vs. Legacy Allocation (3,666 Emergency Cases)
-            </h2>
+        <div className="grid gap-8 p-6 sm:p-9 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] xl:items-center xl:gap-10">
+          <div className="relative z-10 min-w-0">
+            <p className="m-0 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#8de9df]">
+              <span className="h-2 w-2 rounded-full bg-[#60e4d1]" aria-hidden="true" />
+              HemoGrid / Emergency dispatch
+            </p>
+            <h1 className="mt-5 max-w-[670px] text-[clamp(27px,3vw,43px)] font-semibold leading-[1.14] tracking-[-0.045em]">
+              The closest blood bank is not always the right one.
+            </h1>
+            <p className="mt-4 max-w-[610px] text-[13px] leading-6 text-[#b6ccd4] sm:text-[14px]">
+              A hospital needs compatible, dispatchable units, not just a nearby pin.
+              HemoGrid brings stock, quarantine checks and shared-supply planning into one
+              explainable, staff-controlled decision.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                href="/admin/dispatch-planner"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#88efe0] px-5 py-2.5 text-[12px] font-bold text-[#12352f] transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                Open joint dispatch planner <ArrowUpRight size={16} />
+              </Link>
+              <Link
+                href="/admin/requests"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#537080] px-4 py-2.5 text-[12px] font-semibold text-white transition hover:border-[#a7ccd7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                Explore request history <ArrowRight size={15} />
+              </Link>
+            </div>
+            <p className="mt-5 text-[10.5px] leading-5 text-[#93aeb9]">
+              Synthetic Kenyan demonstration network · Planning is advisory · Human approval required
+            </p>
           </div>
-          <ActionLink href="/admin/facilities" pendingLabel="Opening…">
-            Inspect 47 facilities <ArrowRight size={13} />
-          </ActionLink>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-surface-muted/60 border border-border flex flex-col justify-between space-y-2.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-muted">Emergency Fulfilment Rate</span>
-              <span className="px-2 py-0.5 rounded-md bg-success-soft text-success border border-success/20 font-bold text-[10.5px]">
-                +25.0% Fulfilment
+          <div className="relative z-10 rounded-[22px] border border-white/15 bg-white/[0.07] p-4 shadow-inner sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[11px] font-semibold text-[#cce1e7]">The dispatch decision</span>
+              <span className="rounded-full border border-[#77e8d3]/30 bg-[#77e8d3]/10 px-2.5 py-1 text-[10px] font-medium text-[#a1f4e4]">
+                Evidence before action
               </span>
             </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <strong className="text-2xl font-bold text-ink tabular-nums">94.6%</strong>
-                <span className="text-xs text-muted">Smart Dispatch (3,468 / 3,666)</span>
+            <div className="mt-4 space-y-3">
+              <div className="rounded-xl border border-[#c8a09b]/20 bg-[#501f28]/40 p-3.5">
+                <div className="flex items-center gap-2 text-[11px] font-semibold text-[#ffcfcb]">
+                  <Route size={15} /> Distance-only choice
+                </div>
+                <p className="m-0 mt-1 text-[12px] leading-5 text-[#f2d6d5]">
+                  Nearby does not establish available stock, compatibility or cold-chain clearance.
+                </p>
               </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed mt-1.5">
-                Status Quo rigid RBTC assignment fulfils only{" "}
-                <strong className="text-slate-800">69.6% (2,553 / 3,666)</strong> during local hospital stockouts.
+              <div className="flex justify-center" aria-hidden="true">
+                <ArrowRight className="rotate-90 text-[#8de9df]" size={19} />
+              </div>
+              <div className="rounded-xl border border-[#8de9df]/35 bg-[#8de9df]/10 p-3.5">
+                <div className="flex items-center gap-2 text-[11px] font-semibold text-[#a7fff0]">
+                  <CheckCircle2 size={15} /> HemoGrid proposal
+                </div>
+                <p className="m-0 mt-1 text-[12px] leading-5 text-[#dfefed]">
+                  Match eligible stock, show excluded inventory, and account for simultaneous hospital needs.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-3 divide-x divide-white/15 border-t border-white/15 pt-4 text-center">
+              <div className="px-2">
+                <strong className="block text-[22px] font-semibold tabular-nums">{requests.length}</strong>
+                <span className="mt-1 block text-[10px] leading-4 text-[#a9c2ca]">Pending critical requests</span>
+              </div>
+              <div className="px-2">
+                <strong className="block text-[22px] font-semibold tabular-nums">{unitsRequested}</strong>
+                <span className="mt-1 block text-[10px] leading-4 text-[#a9c2ca]">Units requested</span>
+              </div>
+              <div className="px-2">
+                <strong className="block text-[22px] font-semibold tabular-nums">{activeHospitals}</strong>
+                <span className="mt-1 block text-[10px] leading-4 text-[#a9c2ca]">Requesting hospitals</span>
+              </div>
+            </div>
+            <p className="mb-0 mt-3 text-center text-[10px] text-[#94abb5]">
+              Counts reflect the current authenticated demo queue.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(310px,0.75fr)]">
+        <div className="min-w-0 rounded-[22px] border border-border bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="m-0 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
+                Current decision queue
+              </p>
+              <h2 className="mt-1.5 text-lg font-semibold tracking-tight text-ink">Critical red-cell requests</h2>
+              <p className="mt-1 text-[12px] leading-5 text-muted">
+                Pending requests from the backend. None is automatically allocated.
               </p>
             </div>
+            <Link href="/admin/dispatch-planner" className="inline-flex min-h-9 items-center gap-1.5 text-[12px] font-semibold text-brand hover:underline">
+              Plan a batch <ArrowRight size={14} />
+            </Link>
           </div>
-
-          <div className="p-4 rounded-xl bg-surface-muted/60 border border-border flex flex-col justify-between space-y-2.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-muted">Universal O− Conservation</span>
-              <span className="px-2 py-0.5 rounded-md bg-brand-soft text-brand-dark border border-brand/20 font-bold text-[10.5px]">
-                98.6% O− Saved
-              </span>
+          {urgentCases.length === 0 ? (
+            <div className="mt-5 rounded-xl border border-dashed border-border p-6 text-center">
+              <ClipboardCheck size={22} className="mx-auto text-success" />
+              <p className="mb-0 mt-2 text-[12px] font-semibold text-ink">No pending critical requests</p>
+              <p className="mb-0 mt-1 text-[11px] text-muted">The queue refreshes when the page reloads.</p>
             </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <strong className="text-2xl font-bold text-ink tabular-nums">0.4%</strong>
-                <span className="text-xs text-muted">non-O− drain (15 cases)</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed mt-1.5">
-                Status Quo expends scarce O− on non-O− patients in{" "}
-                <strong className="text-slate-800">31.0% (1,090 cases)</strong>. HemoGrid preserves O− for the{" "}
-                <strong className="text-slate-800">442 unknown-group trauma</strong> emergencies.
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-surface-muted/60 border border-border flex flex-col justify-between space-y-2.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-muted">Corridor Re-Assignment</span>
-              <span className="px-2 py-0.5 rounded-md bg-info-soft text-info border border-info/20 font-bold text-[10.5px]">
-                2 Hubs Re-Routed
-              </span>
-            </div>
-            <div className="space-y-1.5 pt-0.5">
-              {dispatchBenchmarkSummary.corridorReassignments.map((corridor) => (
-                <div
-                  key={corridor.hospitalId}
-                  className="p-2 rounded-lg bg-white border border-border text-[11px] flex items-center justify-between gap-2 shadow-2xs"
-                >
-                  <div className="min-w-0">
-                    <strong className="font-semibold text-ink block truncate">
-                      {corridor.hospitalId} ({corridor.hospitalName})
-                    </strong>
-                    <span className="block text-[10.5px] text-muted truncate">
-                      {corridor.currentHub} ({corridor.currentHours}h) →{" "}
-                      <strong className="text-brand-dark">
-                        {corridor.recommendedHub} ({corridor.recommendedHours}h)
-                      </strong>
+          ) : (
+            <div className="mt-4 divide-y divide-border">
+              {urgentCases.map((request, index) => (
+                <div key={request.id} className="flex flex-wrap items-center gap-3 py-3.5 first:pt-0 last:pb-0">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[#f4d4cd] bg-[#fff1ed] text-[12px] font-bold tabular-nums text-[#a63d2b]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className="min-w-[145px] flex-1">
+                    <strong className="block truncate text-[12px] font-semibold text-ink">{request.requester.name}</strong>
+                    <span className="mt-0.5 flex items-center gap-1 text-[10.5px] text-muted">
+                      <Clock3 size={12} /> {timeInNairobi(request.requestedAt)} EAT
                     </span>
                   </div>
-                  <span className="px-1.5 py-0.5 rounded bg-success-soft text-success border border-success/20 font-bold text-[10px] shrink-0">
-                    −{corridor.hoursSaved}h
+                  <div className="flex items-center gap-2">
+                    <BloodBadge group={request.bloodGroup} />
+                    <span className="text-[12px] font-semibold tabular-nums text-ink">{request.unitsRequired} units</span>
+                  </div>
+                  <span className="rounded-full border border-[#f2d3cb] bg-[#fff2ee] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#a54536]">
+                    Critical
                   </span>
                 </div>
               ))}
             </div>
+          )}
+          <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl bg-surface-muted px-3.5 py-3 text-[11px] leading-5 text-muted">
+            <Layers3 size={16} className="shrink-0 text-brand" />
+            Joint planning evaluates 2–5 approved critical requests against the same dispatchable stock.
           </div>
         </div>
-      </Panel>
 
-      {/* Main Grid: Network Map & Availability Stack */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5 items-start">
-        <NetworkMap />
-
-        <div className="space-y-5">
-          {/* Blood Availability Panel */}
-          <Panel className="p-6">
-            <SectionHeader
-              title="Blood availability"
-              description="Free screened units across all connected facilities"
-              action={
-                <ActionLink href="/admin/inventory" pendingLabel="Opening…">
-                  Inspect <ArrowRight size={12} />
-                </ActionLink>
-              }
-            />
-            <div className="grid grid-cols-2 gap-2.5 mt-4">
-              {availability.map((item) => {
-                const isCritical = item.s === "Critical";
-                const isLow = item.s === "Low";
-                const isModerate = item.s === "Moderate";
-                return (
-                  <div
-                    key={item.g}
-                    className="p-3 rounded-xl bg-surface-muted border border-border flex items-center justify-between gap-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-lg bg-brand-soft border border-brand/20 grid place-items-center font-bold text-brand-dark text-xs">
-                        {item.g}
-                      </span>
-                      <div>
-                        <strong className="block text-xs font-bold text-ink">{item.n} units</strong>
-                        <span className="text-[10px] text-muted">Available</span>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                        isCritical
-                          ? "bg-critical-soft text-critical border border-critical/30"
-                          : isLow
-                            ? "bg-warning-soft text-warning border border-warning/30"
-                            : isModerate
-                              ? "bg-info-soft text-info border border-info/30"
-                              : "bg-success-soft text-success border border-success/30"
-                      }`}
-                    >
-                      {item.s}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </Panel>
-
-          {/* Stock & Cold-Chain Alerts Panel */}
-          <Panel className="p-6">
-            <SectionHeader
-              title="Critical stock & cold-chain alerts"
-              description="Conditions requiring regional dispatch attention"
-            />
-            <div className="space-y-2.5 mt-4">
-              <div className="p-3.5 rounded-xl bg-critical-soft/40 border border-critical/30 flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-critical-soft text-critical grid place-items-center shrink-0">
-                    <AlertTriangle size={15} />
-                  </div>
-                  <div>
-                    <strong className="block font-bold text-ink">AB− Whole Blood</strong>
-                    <span className="text-[11px] text-muted">14 units across 6 RBTCs</span>
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-critical text-white uppercase tracking-wider">
-                  Critical
-                </span>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-warning-soft/40 border border-warning/30 flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-warning-soft text-warning grid place-items-center shrink-0">
-                    <Radio size={15} />
-                  </div>
-                  <div>
-                    <strong className="block font-bold text-ink">O− Red Cells (Universal)</strong>
-                    <span className="text-[11px] text-muted">
-                      31 units · O− conservation gate active
-                    </span>
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-warning text-white uppercase tracking-wider">
-                  Protected
-                </span>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-surface-muted border border-border flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-brand-soft text-brand-dark grid place-items-center shrink-0">
-                    <ThermometerSnowflake size={15} />
-                  </div>
-                  <div>
-                    <strong className="block font-bold text-ink">
-                      Mombasa RBTC Cold-Chain Gate
-                    </strong>
-                    <span className="text-[11px] text-muted">
-                      3 units quarantined (&gt;6.0°C outage excursion)
-                    </span>
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-white uppercase tracking-wider">
-                  Blocked
-                </span>
-              </div>
-            </div>
-          </Panel>
+        <div className="min-w-0 rounded-[22px] border border-border bg-white p-5 shadow-sm sm:p-6">
+          <p className="m-0 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
+            Why eligibility changes decisions
+          </p>
+          <h2 className="mt-1.5 text-lg font-semibold tracking-tight text-ink">A measured failure mode</h2>
+          <p className="mt-1 text-[12px] leading-5 text-muted">
+            Reproducible evaluation on 1,072 synthetic emergency red-cell request shapes.
+          </p>
+          <div className="mt-5 rounded-2xl border border-[#ecd5ce] bg-[#fff7f4] p-4">
+            <span className="block text-[10px] font-semibold uppercase tracking-wide text-[#ad4937]">Distance-only selection</span>
+            <strong className="mt-2 block text-[33px] font-semibold tracking-tight tabular-nums text-[#9b392d]">
+              749 <span className="text-[16px] font-medium text-[#a45f52]">/ 1,072</span>
+            </strong>
+            <p className="mb-0 mt-1 text-[11px] leading-5 text-[#875349]">
+              Proposed suppliers that failed at least one configured eligibility check.
+            </p>
+          </div>
+          <div className="mt-3 rounded-2xl border border-[#c4e9df] bg-[#effcf7] p-4">
+            <span className="block text-[10px] font-semibold uppercase tracking-wide text-[#147c6b]">Inventory-aware proposals</span>
+            <strong className="mt-2 block text-[33px] font-semibold tracking-tight tabular-nums text-[#126d5f]">
+              1,044 <span className="text-[16px] font-medium text-[#488b7e]">/ 1,072</span>
+            </strong>
+            <p className="mb-0 mt-1 text-[11px] leading-5 text-[#42776d]">
+              Full-quantity eligible proposals under the same synthetic snapshot.
+            </p>
+          </div>
+          <p className="mb-0 mt-4 text-[11px] leading-5 text-muted">
+            These are simulated eligibility outcomes, not validated transfusion decisions or measured delivery times.
+          </p>
+          <Link href="https://github.com/Team-Relay/hemo-grid-backend#ai-and-data" target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-brand hover:underline">
+            Review evaluation assumptions <ArrowUpRight size={13} />
+          </Link>
         </div>
-      </div>
+      </section>
 
-      {/* Bottom Network Activity Row */}
-      <Panel className="p-6">
-        <SectionHeader
-          title="Recent network activity"
-          description="Operational events across all participating facilities"
-          action={
-            <ActionLink href="/admin/requests" pendingLabel="Opening…">
-              All requests <ArrowRight size={12} />
-            </ActionLink>
-          }
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mt-4">
-          {activities.map((item) => (
-            <div
-              key={item.id}
-              className="p-4 rounded-2xl bg-white border border-border shadow-sm flex flex-col justify-between"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-brand-soft text-brand-dark grid place-items-center shrink-0 mt-0.5">
-                  <Activity size={14} />
-                </div>
-                <div className="min-w-0">
-                  <strong className="block text-xs font-bold text-ink truncate">
-                    {item.title}
-                  </strong>
-                  <p className="text-[11px] text-muted line-clamp-2 mt-1 leading-relaxed">
-                    {item.detail}
-                  </p>
-                </div>
-              </div>
-              <div className="pt-3 mt-3 border-t border-border text-[10.5px] text-muted">
-                {item.timestamp}
-              </div>
-            </div>
-          ))}
+      <section className="rounded-[22px] border border-border bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="m-0 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
+              From request to delivery
+            </p>
+            <h2 className="mt-1.5 text-lg font-semibold tracking-tight text-ink">
+              One accountable workflow. Four clear decisions.
+            </h2>
+          </div>
+          <Link href="/admin/dispatch-planner" className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-brand hover:underline">
+            Inspect the planning step <ArrowRight size={14} />
+          </Link>
         </div>
-      </Panel>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {steps.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.step} className="relative min-w-0 rounded-2xl border border-border bg-[#f7faf9] p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-brand shadow-sm"><Icon size={19} /></span>
+                  <span className="font-mono text-[11px] text-muted">{item.step}</span>
+                </div>
+                <p className="mb-0 mt-4 text-[10px] font-semibold uppercase tracking-wide text-brand">{item.role}</p>
+                <h3 className="mt-1 text-[13px] font-semibold text-ink">{item.title}</h3>
+                <p className="mb-0 mt-2 text-[11.5px] leading-5 text-muted">{item.description}</p>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mb-0 mt-4 flex flex-wrap items-center gap-2 text-[10.5px] leading-5 text-muted">
+          <ThermometerSnowflake size={14} className="text-brand" />
+          The demonstration uses seeded stock, recorded temperature checks and estimated routes.
+          Qualified staff remain responsible for clinical suitability and release.
+        </p>
+      </section>
     </div>
   );
 }
