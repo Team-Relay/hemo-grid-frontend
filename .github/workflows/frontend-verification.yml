@@ -33,6 +33,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Lint
         run: npm run lint
+      - name: Validate controlled synthetic lifecycle syntax
+        run: node --check scripts/controlled-live-lifecycle.mjs
       - name: Unit tests
         run: npm test
       - name: Production build
