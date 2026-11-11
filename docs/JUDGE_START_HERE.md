@@ -12,6 +12,16 @@ HemoGrid is a working, human-in-the-loop emergency red-cell dispatch prototype. 
 
 **Scope:** A synthetic Kenyan demonstration, **not** clinical software. No real patient or donor records, calibrated travel times, automated clinical clearance, or physical blood transfer are claimed.
 
+## Judge access (no account setup)
+
+**You do not need your own email address or password.** The [live login](https://hemogrid-eight.vercel.app/login) includes three demo roles: **Hospital**, **Blood bank** and **Platform admin**.
+
+1. Select a role. HemoGrid fills the **synthetic email and demo password automatically**.
+2. **Do not type personal credentials.** Click **Continue to workspace**.
+3. Switch roles by returning to the login page or signing out, then selecting another demo role.
+
+All records are synthetic. The coordinator's joint preview is read-only with respect to stock, but submitting new hospital requests or accepting orders **does change** the demo database. For a non-mutating review, inspect the existing request and inventory screens.
+
 ## 90-second walkthrough
 
 | Workspace | What to inspect | What the system actually does |

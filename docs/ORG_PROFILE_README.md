@@ -1,9 +1,8 @@
 <!--
-  TEAM RELAY ORGANIZATION PROFILE
-  Publish this Markdown as: Team-Relay/.github/profile/README.md
-  The profile repository must be public for GitHub to display it on the
-  organization's Overview page. This file in the frontend repository is the
-  approved publication source, not itself the active organization profile.
+  Publication source for Team-Relay/.github/profile/README.md.
+  The public organization profile is a PROJECT INTRODUCTION, not the official
+  technical-phase submission README. Once the screenshot exists, copy the
+  contents of this file into the special .github repository's profile/README.md.
 -->
 
 <div align="center">
@@ -12,45 +11,51 @@
 
 ### The closest blood bank is not always the right one.
 
-**Emergency blood dispatch · Team Relay · Terumo BCT Africa Hackathon 2026**
+**Emergency request & dispatch · Team Relay · Terumo BCT Africa Hackathon 2026**
 
-[**Launch the live prototype**](https://hemogrid-eight.vercel.app/login) · [**Start here: judges' guide**](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md) · [**Frontend**](https://github.com/Team-Relay/hemo-grid-frontend) · [**Backend**](https://github.com/Team-Relay/hemo-grid-backend)
+**[Launch the working demo](https://hemogrid-eight.vercel.app/login)** · **[Judge's quick guide](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md)** · [Frontend](https://github.com/Team-Relay/hemo-grid-frontend) · [Backend](https://github.com/Team-Relay/hemo-grid-backend)
+
+**No signup.** Choose **Hospital**, **Blood bank** or **Platform admin**. The synthetic email and password are **prefilled**. Click **Continue to workspace**; do not use your personal credentials.
+
+<a href="https://hemogrid-eight.vercel.app/login">
+  <img src="https://raw.githubusercontent.com/Team-Relay/hemo-grid-frontend/main/public/judges/mission-control.png" alt="Actual HemoGrid Network Mission Control dashboard displaying critical requests, dispatch decision evidence, and the joint-planner entry point" width="920" />
+</a>
+
+<sub>Actual hosted Network Mission Control workspace · Synthetic demonstration data, not real patient records.</sub>
 
 </div>
 
 ---
 
-### The problem
+## A working dispatch decision, not just a map
 
-The nearest blood bank may not have enough **eligible, dispatchable red cells**. During concurrent emergencies, hospitals can also compete for the same inventory.
+A nearby bank may lack **eligible, dispatchable blood**. HemoGrid connects a hospital's request, a coordinator's shared-stock plan and the supplying bank's approval and reservation.
 
-**HemoGrid makes those constraints visible before the handoff.** It links hospital requests, staff-reviewed supplier proposals, blood-bank reservations and a coordinator's joint dispatch preview in one working prototype.
+**Proven on the deployed synthetic system:** A hospital created a one-unit A-positive request, selected a bank, and the bank accepted, reserved, prepared, marked in transit and completed delivery. Inventory reconciled from **10 → 9 available units**, with **0 reserved** at completion.
 
-### One request. Three accountable workspaces.
+**[View the hosted transaction audit](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)** · [Review reproducible evaluation and limitations](https://github.com/Team-Relay/hemo-grid-backend#ai-and-data)
 
-| 01 · Hospital | 02 · Network coordinator | 03 · Blood bank |
+## What judges can explore
+
+| Hospital officer | Network coordinator | Supplying blood bank |
 | :--- | :--- | :--- |
-| Requests blood; reviews stock and eligibility; selects the supplier | Compares assignments for **2–5 staff-approved requests** competing for shared stock | Accepts and reserves stock; records preparation, transit and delivery |
+| Record a request and review eligible suppliers | Compare joint allocation proposals for 2–5 staff-approved critical red-cell requests | Accept, reserve, prepare, dispatch and complete a synthetic order |
 
-### A working system, not just screens
+**Each action has a responsible human.** Coordinator previews do not reserve stock, and the system does not claim clinical clearance or actual transport time.
 
-- **Hosted transaction completed:** A synthetic A-positive red-cell request went from **created → selected → accepted/reserved → preparing → in transit → delivered**. Available stock reconciled from **10 to 9 units**, with no outstanding reservation. [Inspect the audit](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072).
-- **Repeatable, bounded planning:** An explicit solver evaluates shared-stock assignments and reports infeasibility or search limits instead of silently inventing solutions. [Read the technical results](https://github.com/Team-Relay/hemo-grid-backend#ai-and-data).
-- **Real deployed interfaces:** Hospital, blood-bank and coordinator authentication and browser navigation have passed hosted checks. [View verification](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42957499126).
+## Two codebases. One project.
 
-### Project source
+| Start here | Technical contribution |
+| --- | --- |
+| **[Primary submission README and frontend](https://github.com/Team-Relay/hemo-grid-frontend#readme)** | User workflow, setup, authentication experience, API integration and browser tests |
+| **[Backend engineering README](https://github.com/Team-Relay/hemo-grid-backend#readme)** | Spring Boot API, PostgreSQL transactions, inventory safeguards, planner, reproducible benchmarks and limitations |
 
-| Repository | What judges will find |
-| :--- | :--- |
-| **[HemoGrid frontend](https://github.com/Team-Relay/hemo-grid-frontend)** | Next.js, TypeScript, three role workspaces, browser checks and the main submission README |
-| **[HemoGrid backend](https://github.com/Team-Relay/hemo-grid-backend)** | Spring Boot, PostgreSQL, JWT, stock protection, dispatch planner, APIs, database migrations and reproducible evaluations |
+**For reviewers:** This organization page is a short introduction. The required technical README structure is in the **root README files linked above**. Read the [two-minute judging guide](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md) for the demonstration order, architecture, baseline comparisons and evidence.
 
-**[Read the complete two-minute project tour](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md)** for the demo path, architecture, benchmark tradeoffs, tests, limitations and local setup.
+## Team Relay
 
-### Team
+**Grold Otieno** · AI/ML research; Epidemiology and Biostatistics · Kenya  
+**Dennis Ikechukwu Okwuchukwu** · Team lead; full-stack and systems engineering · Nigeria  
+**Mubarak Zubair** · Product management and clinical data analysis · Nigeria
 
-**Grold Otieno** · AI/ML research, Epidemiology and Biostatistics (Kenya)  
-**Dennis Ikechukwu Okwuchukwu** · Team lead, full-stack/systems engineering (Nigeria)  
-**Mubarak Zubair** · Product management and clinical data analysis (Nigeria)
-
-<sub>Built using synthetic Kenyan demonstration data. No real patient/donor records, validated clinical release decisions or physical blood deliveries are claimed. The plan is advisory, and clinical decisions remain with qualified staff.</sub>
+<sub>Prototype with synthetic Kenyan data. Not for clinical use. No real donors, patients, transfusion outcomes, measured delivery times or certified interoperability are claimed.</sub>

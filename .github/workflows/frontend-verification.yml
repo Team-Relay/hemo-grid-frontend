@@ -35,6 +35,8 @@ jobs:
         run: npm run lint
       - name: Validate controlled synthetic lifecycle syntax
         run: node --check scripts/controlled-live-lifecycle.mjs
+      - name: Check judge screenshot script syntax
+        run: node --check scripts/capture-mission-control.mjs
       - name: Unit tests
         run: npm test
       - name: Production build

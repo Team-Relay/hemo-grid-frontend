@@ -218,7 +218,7 @@ export function LoginForm() {
 
           <form method="post" onSubmit={handleSubmit} noValidate>
             <fieldset className="mb-3 border-0 p-0">
-              <legend className="mb-1.5 text-[11px] font-semibold text-[#344a50]">Workspace</legend>
+              <legend className="mb-1.5 text-[11px] font-semibold text-[#344a50]">Choose a demo role</legend>
               <div className="grid grid-cols-3 gap-1 rounded-xl border border-[#e1e9e8] bg-[#f3f7f6] p-1">
                 {roles.map((item) => (
                   <button
@@ -266,8 +266,8 @@ export function LoginForm() {
 
             <div className="mb-3">
               <div className="mb-1 flex items-baseline justify-between gap-2">
-                <label htmlFor="password" className="text-[11px] font-semibold text-[#344a50]">Password</label>
-                <Link href="/forgot-password" className="text-[10px] font-medium text-[#087668] hover:underline">Forgot password?</Link>
+                <label htmlFor="password" className="text-[11px] font-semibold text-[#344a50]">Demo password</label>
+                <span className="text-[10px] font-medium text-[#087668]">Already filled</span>
               </div>
               <div className="flex min-h-[42px] items-center gap-2.5 rounded-[10px] border border-[#d6e2e1] bg-white pl-3 text-[#78929a] transition-colors focus-within:border-[#168778] focus-within:ring-2 focus-within:ring-[#ddf4ef]">
                 <LockKeyhole size={15} strokeWidth={1.8} />
@@ -311,7 +311,7 @@ export function LoginForm() {
 
           <div className="mt-4 flex items-center gap-1.5 border-t border-[#edf1f0] pt-3 text-[10px] text-[#6b8086]">
             <ShieldCheck size={13} className="shrink-0 text-[#168778]" />
-            <span>Synthetic demonstration. No patient data.</span>
+            <span>Credentials are prefilled. Choose a role and click Continue. Do not use your personal password.</span>
           </div>
         </div>
       </section>

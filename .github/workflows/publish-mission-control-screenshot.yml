@@ -1,0 +1,53 @@
+name: Publish Mission Control screenshot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/capture-mission-control.mjs
+      - .github/workflows/publish-mission-control-screenshot.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hemogrid-judge-screenshot
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned frontend dependencies
+        run: npm ci
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture deployed synthetic coordinator workspace
+        run: node scripts/capture-mission-control.mjs
+      - name: Commit the screenshot if it changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/judges/mission-control.png
+          if git diff --cached --quiet; then
+            echo "Screenshot already current."
+          else
+            git commit -m "docs: publish actual HemoGrid Mission Control screenshot"
+            git push origin HEAD:main
+          fi
+      - name: Retain visual output for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hemogrid-mission-control-screenshot
+          path: public/judges/mission-control.png
+          retention-days: 7
