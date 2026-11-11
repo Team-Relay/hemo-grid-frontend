@@ -4,7 +4,7 @@
 
 **Terumo BCT Africa Hackathon 2026 · Emergency request and dispatch**
 
-**[Launch the live prototype](https://hemogrid-eight.vercel.app/login)** · **[Judges: start here (2 minutes)](docs/JUDGE_START_HERE.md)** · [Backend and evaluation](https://github.com/Team-Relay/hemo-grid-backend) · [Verified hosted transaction](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
+**[Launch the live prototype](https://hemogrid-eight.vercel.app/login)** · **[Watch the demo video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq)** · **[View the 8-slide pitch deck](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1)** · **[Judges: start here (2 minutes)](docs/JUDGE_START_HERE.md)** · [Backend and evaluation](https://github.com/Team-Relay/hemo-grid-backend) · [Verified hosted transaction](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
 
 **Judge access:** [Open the demo](https://hemogrid-eight.vercel.app/login), select **Hospital**, **Blood bank** or **Platform admin**, and click **Continue to workspace**. The role's synthetic email and password are **already filled in**. **Do not enter personal credentials.** [See the 90-second guide](docs/JUDGE_START_HERE.md).
 
@@ -77,8 +77,8 @@ This was **a synthetic software lifecycle test**, not an actual shipment, clinic
 | Backend | [API health](https://hemo-grid-backend.onrender.com/actuator/health) |
 | API reference | [Swagger UI](https://hemo-grid-backend.onrender.com/swagger-ui.html) |
 | Backend source and evidence | [Team-Relay/hemo-grid-backend](https://github.com/Team-Relay/hemo-grid-backend) |
-| Video (3 minutes maximum) | Recording link pending |
-| Pitch slides (8 maximum) | Deck link pending |
+| Demo video (3 minutes maximum) | [Watch HemoGrid on Tella](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) |
+| Pitch slides (8 maximum) | [View the Team Relay pitch deck](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) |
 
 The public frontend and backend have passed [hosted three-role API and browser checks](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42957499126), including compact desktop and mobile login layouts. Live availability should still be checked before presenting.
 
@@ -191,7 +191,6 @@ Team Relay owns the problem definition, implementation decisions, test interpret
 
 ## Known limits and next steps
 
-1. Record a short, staff-led walkthrough of the coordinator's advisory plan and the hospital-to-bank request lifecycle using only synthetic records.
-2. Publish the three-minute video and eight-slide pitch deck under the submission template, tying benchmark claims to their exact synthetic denominators.
+1. Rehearse the published [demo video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) and [eight-slide pitch deck](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) alongside the live synthetic workflow; confirm judges can view both links without sign-in.
 3. Review and classify npm dependency advisories before any production deployment.
 4. Treat clinical validation, real inventory/temperature feeds, unit-level traceability, calibrated travel times and offline/SMS fallbacks as future work.
