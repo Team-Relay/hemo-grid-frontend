@@ -61,6 +61,22 @@ test.describe("hosted three-role demo navigation", () => {
       viewport: document.documentElement.clientWidth,
       scrollWidth: document.documentElement.scrollWidth,
     }));
+    if (size.scrollWidth > size.viewport + 3) {
+      const offenders = await page.evaluate(() =>
+        Array.from(document.querySelectorAll("*"))
+          .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+          .filter(({ rect }) => rect.width > 0 && rect.right > window.innerWidth + 3)
+          .sort((a, b) => b.rect.right - a.rect.right)
+          .slice(0, 12)
+          .map(({ element, rect }) => ({
+            tag: element.tagName,
+            css: typeof element.className === "string" ? element.className.slice(0, 130) : "",
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+          })),
+      );
+      console.log("Mobile overflow candidates:", JSON.stringify(offenders));
+    }
     expect(size.scrollWidth, "Mobile page must not overflow horizontally").toBeLessThanOrEqual(
       size.viewport + 3,
     );
