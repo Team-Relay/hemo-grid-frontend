@@ -1,0 +1,49 @@
+name: Controlled synthetic lifecycle proof
+
+on:
+  pull_request:
+    paths:
+      - scripts/controlled-live-lifecycle.mjs
+  push:
+    branches: [main]
+    paths:
+      - scripts/controlled-live-lifecycle.mjs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hemogrid-controlled-synthetic-lifecycle
+  cancel-in-progress: false
+
+jobs:
+  read-only-preflight:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate lifecycle test syntax
+        run: node --check scripts/controlled-live-lifecycle.mjs
+      - name: Confirm public synthetic actors and suitable stock (no mutation)
+        run: node scripts/controlled-live-lifecycle.mjs --preflight
+
+  run-controlled-rehearsal:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      HEMOGRID_ALLOW_SYNTHETIC_MUTATION: I_CONFIRM_SYNTHETIC_ONLY
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate lifecycle script syntax
+        run: node --check scripts/controlled-live-lifecycle.mjs
+      - name: Execute one-unit synthetic create-select-accept-deliver rehearsal
+        run: node scripts/controlled-live-lifecycle.mjs
