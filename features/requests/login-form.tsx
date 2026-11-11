@@ -139,83 +139,107 @@ export function LoginForm() {
   }
 
   return (
-    <main className="grid min-h-screen grid-cols-1 bg-white lg:grid-cols-2">
-      <section className="relative hidden min-h-screen overflow-hidden bg-canvas px-[clamp(40px,4vw,72px)] py-10 lg:flex lg:flex-col lg:justify-between">
-        <div className="pointer-events-none absolute -right-[280px] -top-[330px] h-[760px] w-[760px] rounded-full border border-brand/10 shadow-[0_0_0_90px_rgba(108,92,231,0.025),0_0_0_180px_rgba(108,92,231,0.018)]" />
-
-        <div className="relative z-10 flex items-center justify-between gap-5">
-          <Wordmark variant="plain" />
-          <span className="inline-flex items-center gap-2 text-[11px] font-light text-muted">
-            <ShieldCheck size={14} strokeWidth={1.8} /> Synthetic demo access
-          </span>
+    <main className="grid min-h-screen min-w-0 grid-cols-1 bg-[#f7f9fb] lg:grid-cols-[minmax(0,1.035fr)_minmax(0,0.965fr)]">
+      <section className="relative hidden min-h-screen overflow-hidden bg-[#102b39] px-[clamp(36px,4.1vw,68px)] py-9 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute -right-[240px] -top-[300px] h-[650px] w-[650px] rounded-full border border-[#70c3b6]/15" />
+          <div className="absolute -right-[160px] -top-[210px] h-[480px] w-[480px] rounded-full border border-[#70c3b6]/15" />
+          <div className="absolute -bottom-44 -left-48 h-[430px] w-[430px] rounded-full bg-[#234959]/40 blur-[90px]" />
         </div>
 
-        <div className="relative z-10 max-w-[610px] py-10">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2 text-[11px] font-semibold text-success shadow-[0_2px_10px_rgba(18,183,106,0.06)]">
-            <i className="h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_0_4px_rgba(18,183,106,0.12)]" />
-            HemoGrid demonstration network
+        <header className="relative z-10 flex items-center justify-between gap-4">
+          <Link href="/login" className="inline-flex items-center gap-2.5 text-[16px] font-bold tracking-[-0.035em] text-white">
+            <span className="grid h-8 w-8 place-items-center rounded-[10px] border border-[#80e1d1]/30 bg-[#80e1d1]/10">
+              <Activity size={17} className="text-[#91f0dd]" strokeWidth={2.2} />
+            </span>
+            HemoGrid
+          </Link>
+          <span className="inline-flex items-center gap-2 text-[10px] font-medium text-[#b5cad2]">
+            <ShieldCheck size={13} className="text-[#90e8d7]" />
+            Synthetic demo workspace
           </span>
-          <h1 className="mt-7 max-w-[610px] text-[clamp(36px,3.15vw,46px)] font-medium leading-[1.05] tracking-[-0.04em] text-ink">
-            <span className="whitespace-nowrap">Critical blood coordination,</span> without the
-            noise.
+        </header>
+
+        <div className="relative z-10 max-w-[610px] py-8">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#70c3b6]/25 bg-[#80e1d1]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#a2ecdd]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#9ce8db] motion-safe:animate-pulse" aria-hidden="true" />
+            Emergency blood dispatch
+          </span>
+
+          <h1 className="mt-6 max-w-[600px] text-[clamp(38px,3.65vw,59px)] font-semibold leading-[1.075] tracking-[-0.052em] text-white">
+            The closest blood bank{" "}
+            <span className="text-[#92e8d7]">is not always</span>{" "}
+            the right one.
           </h1>
-          <p className="mt-6 max-w-[510px] text-[15px] font-light leading-7 text-muted">
-            An authenticated demonstration linking hospitals, recorded inventory and
-            staff-reviewed blood-dispatch proposals across a synthetic Kenyan network.
+          <p className="mt-5 max-w-[530px] text-[13.5px] leading-[1.9] text-[#c4d4da]">
+            Proximity alone cannot confirm usable blood. HemoGrid helps teams review
+            recorded stock, blood-group rules and cold-chain evidence, then coordinate
+            supply across competing emergency requests.
           </p>
-          <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-[11px] text-[#46534f]">
-            <span className="inline-flex items-center gap-2">
-              <ShieldCheck size={15} className="text-brand" /> ABO/Rh O− conservation
+
+          <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3">
+            <span className="inline-flex items-center gap-2 text-[11px] font-medium text-[#e0efed]">
+              <Building2 size={15} className="text-[#93e9d9]" /> Inventory-aware matching
             </span>
-            <span className="inline-flex items-center gap-2">
-              <ThermometerSnowflake size={15} className="text-brand" /> 2°C–6°C cold-chain guard
+            <span className="inline-flex items-center gap-2 text-[11px] font-medium text-[#e0efed]">
+              <ThermometerSnowflake size={15} className="text-[#93e9d9]" /> Cold-chain safeguards
             </span>
-            <span className="inline-flex items-center gap-2">
-              <Activity size={15} className="text-brand" /> Estimated corridor transit
+            <span className="inline-flex items-center gap-2 text-[11px] font-medium text-[#e0efed]">
+              <Activity size={15} className="text-[#93e9d9]" /> Joint dispatch planning
             </span>
           </div>
         </div>
 
-        <div className="relative z-10 rounded-[20px] border border-white/90 bg-white/78 p-5 shadow-[0_18px_48px_rgba(31,45,40,0.07)] backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-5">
+        <div className="relative z-10 rounded-[20px] border border-[#7398a3]/25 bg-white/[0.06] p-4 shadow-[0_16px_45px_rgba(1,15,24,0.16)] backdrop-blur-sm sm:p-5">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <strong className="block text-[12px] font-semibold text-ink">
-                Network visibility
-              </strong>
-              <span className="mt-1 block text-[10px] font-light text-muted">
-                Synthetic Kenyan network with 47 modeled facilities
+              <p className="m-0 text-[12px] font-semibold tracking-[-0.01em] text-white">
+                A better dispatch decision
+              </p>
+              <p className="mb-0 mt-1 text-[10.5px] text-[#abc3cb]">
+                An illustrative decision path, not live clinical data
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full border border-[#8ee1d0]/20 bg-[#8ee1d0]/10 px-2.5 py-1 text-[10px] font-semibold text-[#b7f8ea]">
+              Demo
+            </span>
+          </div>
+
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-2.5">
+            <div className="min-w-0 rounded-xl border border-[#ad7b7c]/20 bg-[#4b3039]/45 p-3">
+              <span className="block text-[9.5px] font-bold uppercase tracking-[0.09em] text-[#f1b7b4]">
+                Distance only
+              </span>
+              <strong className="mt-1.5 block text-[12px] font-semibold text-white">Nearest site</strong>
+              <span className="mt-1 block text-[10px] leading-4 text-[#d1c3c9]">
+                Stock and safety still unknown
               </span>
             </div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-success-soft px-2.5 py-1.5 text-[10px] font-semibold text-success">
-              <i className="h-1.5 w-1.5 rounded-full bg-current" /> Demo
-            </span>
+            <div className="flex items-center justify-center" aria-hidden="true">
+              <ArrowRight className="text-[#95e4d5]" size={17} />
+            </div>
+            <div className="min-w-0 rounded-xl border border-[#8bdccc]/30 bg-[#4d9b8f]/15 p-3">
+              <span className="block text-[9.5px] font-bold uppercase tracking-[0.09em] text-[#9df0db]">
+                Evidence-led
+              </span>
+              <strong className="mt-1.5 block text-[12px] font-semibold text-white">Eligible proposal</strong>
+              <span className="mt-1 block text-[10px] leading-4 text-[#c6dedb]">
+                Stock, compatibility and cold chain
+              </span>
+            </div>
           </div>
 
-          <div className="login-nodes my-1">
-            <i />
-            <i />
-            <i />
-            <i />
-            <i />
-            <svg viewBox="0 0 100 46" aria-hidden="true">
-              <path d="M8 31 C24 7, 41 36, 53 18 S78 4, 92 28" />
-            </svg>
-          </div>
-
-          <div className="grid grid-cols-3 border-t border-border pt-4">
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/15 pt-4">
             {[
               ["47", "Seeded facilities"],
-              ["2–5", "Requests per joint preview"],
+              ["2–5", "Requests per plan"],
               ["3", "Staff workspaces"],
-            ].map(([value, label], index) => (
-              <div
-                className={cn("min-w-0", index > 0 && "border-l border-border pl-5")}
-                key={label}
-              >
-                <strong className="block text-[17px] font-semibold tracking-[-0.025em] text-ink tabular-nums">
+            ].map(([value, label]) => (
+              <div key={label} className="min-w-0">
+                <strong className="block text-[17px] font-semibold tracking-tight text-white tabular-nums">
                   {value}
                 </strong>
-                <span className="mt-1 block text-[9.5px] font-light uppercase tracking-[0.035em] text-muted">
+                <span className="mt-1 block text-[9.5px] leading-4 text-[#aac2cb]">
                   {label}
                 </span>
               </div>
@@ -224,33 +248,33 @@ export function LoginForm() {
         </div>
       </section>
 
-      <section className="relative flex min-h-screen items-center justify-center bg-white px-5 py-8 sm:px-10 sm:py-10 lg:px-[clamp(52px,5vw,88px)]">
-        <div className="w-full max-w-[470px]">
-          <div className="mb-12 lg:hidden">
+      <section className="relative flex min-h-screen min-w-0 items-center justify-center bg-[#f7f9fb] px-4 py-8 sm:px-7 sm:py-10 lg:px-[clamp(32px,4.3vw,76px)]">
+        <div className="w-full max-w-[476px] rounded-[24px] border border-[#e2e8eb] bg-white px-5 py-7 shadow-[0_24px_64px_rgba(19,42,55,0.055)] sm:px-9 sm:py-9">
+          <div className="mb-8 lg:hidden">
             <Wordmark variant="plain" />
           </div>
 
-          <div className="mb-7">
-            <span className="mb-4 grid h-11 w-11 place-items-center rounded-xl border border-[#dcddfc] bg-brand-soft text-brand">
+          <div className="mb-6">
+            <span className="mb-4 grid h-11 w-11 place-items-center rounded-xl border border-[#c9e3dc] bg-[#effaf6] text-[#217f71]">
               <LockKeyhole size={19} strokeWidth={1.8} />
             </span>
             <p className="mb-2 text-[10.5px] font-bold uppercase tracking-[0.1em] text-brand">
-              Secure workspace
+              Your coordination workspace
             </p>
-            <h2 className="m-0 text-[32px] font-semibold tracking-[-0.045em] text-ink">
+            <h2 className="m-0 text-[30px] font-semibold tracking-[-0.045em] text-ink sm:text-[32px]">
               Sign in to HemoGrid
             </h2>
             <p className="mt-3 max-w-[420px] text-[13px] font-light leading-6 text-muted">
-              Select your organization workspace and continue to the coordination console.
+              Choose a demo role to explore the hospital, blood-bank or network-coordination workflow.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate>
-            <fieldset className="mb-6 border-0 p-0">
+            <fieldset className="mb-5 border-0 p-0">
               <legend className="mb-2.5 text-[11.5px] font-medium text-[#35423f]">
                 Workspace type
               </legend>
-              <div className="grid grid-cols-3 gap-1 rounded-[15px] bg-surface-muted p-1.5">
+              <div className="grid grid-cols-3 gap-1 rounded-[15px] border border-[#e5ebed] bg-[#f5f8f8] p-1.5">
                 {roles.map((item) => (
                   <button
                     type="button"
@@ -261,7 +285,7 @@ export function LoginForm() {
                       setState(initialLoginState);
                     }}
                     className={cn(
-                      "relative flex min-h-[76px] min-w-0 flex-col items-start justify-center gap-2 rounded-[11px] px-3 text-left text-[10.5px] font-medium transition-all duration-150 disabled:cursor-wait",
+                      "relative flex min-h-[75px] min-w-0 flex-col items-start justify-center gap-2 rounded-[11px] px-2.5 text-left text-[10.5px] font-medium transition-all duration-150 disabled:cursor-wait sm:px-3",
                       item.id === role.id
                         ? "bg-white text-brand-dark shadow-[0_2px_10px_rgba(38,42,39,0.08)] ring-1 ring-border"
                         : "text-muted hover:bg-white/70 hover:text-ink",
@@ -279,7 +303,7 @@ export function LoginForm() {
                     >
                       <item.icon size={16} strokeWidth={1.8} />
                     </span>
-                    <span className="truncate">{item.label}</span>
+                    <span className="max-w-full truncate">{item.label}</span>
                     {item.id === role.id && (
                       <Check size={13} className="absolute right-2.5 top-2.5 text-brand" />
                     )}
@@ -287,6 +311,8 @@ export function LoginForm() {
                 ))}
               </div>
             </fieldset>
+
+            <p className="mb-5 mt-2 text-[10.5px] leading-5 text-muted">Prefilled synthetic credentials. No patient data is required.</p>
 
             <div className="mb-4">
               <label
@@ -366,16 +392,16 @@ export function LoginForm() {
               Continue to workspace <ArrowRight size={16} />
             </Button>
 
-            <div className="mt-6 flex items-start gap-2.5 border-t border-border pt-5 text-[10px] font-light leading-5 text-muted">
+            <div className="mt-5 flex items-start gap-2.5 border-t border-border pt-4 text-[10px] font-normal leading-5 text-muted">
               <ShieldCheck size={14} className="mt-0.5 shrink-0 text-success" />
               <p className="m-0">
-                Access is verified securely against the HemoGrid National API.
+                Demo sign-in is verified by the HemoGrid API. Do not enter real patient information.
               </p>
             </div>
           </form>
 
-          <p className="mt-8 text-[9.5px] font-light uppercase tracking-[0.06em] text-muted-2">
-            HemoGrid Clinical Coordination Network · Enterprise Platform
+          <p className="mt-5 text-center text-[9.5px] font-medium uppercase tracking-[0.11em] text-muted-2">
+            HemoGrid · Emergency request and dispatch · Prototype
           </p>
         </div>
       </section>
