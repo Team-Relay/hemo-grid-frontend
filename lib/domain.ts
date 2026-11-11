@@ -3,6 +3,7 @@
 import type {
   BloodComponent,
   BloodGroup,
+  Candidate,
   BloodRequestStatus,
   InventoryItem,
   RequestUrgency,
@@ -86,6 +87,15 @@ export function getFreeUnits(item: InventoryItem) {
     item.availableUnits - item.reservedUnits - (item.quarantinedTempExcursionUnits ?? 0),
   );
 }
+/** Do not enable a dispatch selection without affirmative recorded safety evidence. */
+export function canSelectProviderCandidate(candidate: Candidate): boolean {
+  return (
+    candidate.canFullyFulfil &&
+    candidate.coldChainVerified === true &&
+    candidate.matchType !== undefined
+  );
+}
+
 export function getStockHealth(free: number): StockHealth {
   if (free <= 2) return "CRITICAL";
   if (free <= 5) return "LOW";
