@@ -1,6 +1,7 @@
 /** Verifies the transport-to-view-model contract and v2 Smart Dispatch enrichments. */
 
 import { describe, expect, it } from "vitest";
+import { getFreeUnits } from "@/lib/domain";
 
 import type {
   BackendBloodRequest,
@@ -12,6 +13,7 @@ import {
   mapBloodRequest,
   mapCandidate,
   mapInventoryItem,
+  isTodayInNairobi,
 } from "@/lib/api/mappers";
 
 const request: BackendBloodRequest = {
@@ -89,7 +91,8 @@ describe("inventory mappers", () => {
       availableUnits: 12,
       reservedUnits: 2,
       lastUpdated: "1 minute ago",
-      coldChainStatus: "VERIFIED_2_6C",
+      coldChainStatus: undefined,
+      fridgeTempCelsius: undefined,
     });
   });
 });
@@ -113,11 +116,56 @@ describe("candidate mappers", () => {
       organizationName: "Central Regional Blood Center",
       rank: 1,
       canFullyFulfil: true,
-      matchType: "EXACT",
-      coldChainVerified: true,
-      conservationRuleApplied: true,
+      matchType: undefined,
+      coldChainVerified: undefined,
+      conservationRuleApplied: undefined,
     });
-    expect(mapped.estimatedTransitHours).toBeGreaterThan(0);
-    expect(mapped.recommendationReasons?.length).toBeGreaterThan(0);
+    expect(mapped.estimatedTransitHours).toBeUndefined();
+    expect(mapped.recommendationReasons).toContain("Cold-chain verification was not supplied; qualified staff must confirm.");
+  });
+});
+
+describe("source evidence and Kenyan time", () => {
+  it("never labels unreported cold-chain telemetry or travel time as verified", () => {
+    const item: BackendInventoryItem = {
+      id: "inventory-unknown",
+      bloodGroup: "O_NEGATIVE",
+      component: "RED_CELLS",
+      unitsAvailable: 10,
+      unitsReserved: 2,
+      unitsFree: 8,
+      updatedAt: "2026-11-10T09:00:00Z",
+    };
+    const mapped = mapInventoryItem(item, "bank-1");
+    expect(mapped.coldChainStatus).toBeUndefined();
+    expect(mapped.fridgeTempCelsius).toBeUndefined();
+    expect(getFreeUnits(mapped)).toBe(0);
+  });
+
+  it("uses backend dispatchable units after quarantine rather than raw free units", () => {
+    const item: BackendInventoryItem = {
+      id: "inventory-safe",
+      bloodGroup: "O_NEGATIVE",
+      component: "RED_CELLS",
+      unitsAvailable: 10,
+      unitsReserved: 2,
+      unitsFree: 8,
+      dispatchableUnitsFree: 5,
+      coldChainStatus: "VERIFIED_2_6C",
+      coldChainVerified: true,
+      fridgeTempCelsius: 3.8,
+      quarantinedTempExcursionUnits: 3,
+      updatedAt: "2026-11-10T09:00:00Z",
+    };
+    const mapped = mapInventoryItem(item, "bank-1");
+    expect(getFreeUnits(mapped)).toBe(5);
+    expect(mapped.fridgeTempCelsius).toBe(3.8);
+    expect(mapped.coldChainStatus).toBe("VERIFIED_2_6C");
+  });
+
+  it("uses Nairobi rather than Lagos for delivered-today counts", () => {
+    const now = new Date("2026-11-11T00:30:00+03:00");
+    expect(isTodayInNairobi("2026-11-10T22:05:00Z", now)).toBe(true);
+    expect(isTodayInNairobi("2026-11-10T20:10:00Z", now)).toBe(false);
   });
 });
