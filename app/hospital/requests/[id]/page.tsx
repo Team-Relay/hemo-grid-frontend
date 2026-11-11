@@ -42,7 +42,7 @@ export default async function HospitalRequestDetail({
         title={`Request ${request.reference}`}
         description="Track provider response, reservation and transfer progress."
       />
-      <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(310px,0.65fr)] gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.35fr)_minmax(310px,0.65fr)] gap-4">
         <div className="flex flex-col gap-4">
           <RequestHero request={request} />
           <RequestTimeline request={request} />
