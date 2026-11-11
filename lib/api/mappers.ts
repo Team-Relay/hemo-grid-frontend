@@ -21,19 +21,17 @@ import type {
   TimelineEvent,
 } from "@/types/domain";
 
-const AVERAGE_CORRIDOR_SPEED_KMH = 42;
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-NG", {
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-KE", {
   dateStyle: "medium",
   timeStyle: "short",
-  timeZone: "Africa/Lagos",
+  timeZone: "Africa/Nairobi",
 });
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
-  timeZone: "Africa/Lagos",
+  timeZone: "Africa/Nairobi",
 });
 
 const RESERVED_STATUSES: readonly BloodRequestStatus[] = ["ACCEPTED", "PREPARING", "IN_TRANSIT"];
@@ -62,7 +60,7 @@ export function mapBloodRequest(dto: BackendBloodRequest, now = new Date()): Blo
     estimatedTransitHours: dto.estimatedTransitHours ?? undefined,
     unknownPatientBloodGroup,
     matchType: dto.matchType ?? "EXACT",
-    coldChainVerified: dto.coldChainVerified ?? true,
+    coldChainVerified: dto.coldChainVerified,
     clinicalReference: dto.clinicalReference ?? undefined,
     notes: dto.notes ?? undefined,
     timeline: mapRequestTimeline(dto),
@@ -77,33 +75,31 @@ export function mapBloodRequests(
 }
 
 export function mapCandidate(dto: BackendCandidate): Candidate {
+  // Display source evidence only. Never substitute a simulated ETA, temperature,
+  // compatibility decision or cold-chain verification for a missing API field.
   const distanceKm = dto.distanceKm ?? undefined;
-  const estimatedTransitHours =
-    dto.estimatedTransitHours !== undefined && dto.estimatedTransitHours !== null
-      ? dto.estimatedTransitHours
-      : distanceKm !== undefined
-        ? Number(Math.max(0.25, distanceKm / AVERAGE_CORRIDOR_SPEED_KMH).toFixed(2))
-        : undefined;
-
+  const estimatedTransitHours = dto.estimatedTransitHours ?? undefined;
   const facilityTier: FacilityTier =
     dto.facilityTier ??
     (dto.organizationName.toLowerCase().includes("satellite") ? "SATELLITE" : "RBTC");
 
-  const matchType = dto.matchType ?? "EXACT";
-  const offeredBloodGroup = dto.offeredBloodGroup ?? dto.bloodGroup;
-  const coldChainVerified = dto.coldChainVerified ?? true;
-  const fridgeTempCelsius = dto.fridgeTempCelsius ?? 3.8;
-  const quarantinedUnitsExcluded = dto.quarantinedUnitsExcluded ?? 0;
-  const conservationRuleApplied = dto.conservationRuleApplied ?? dto.bloodGroup !== "O_NEGATIVE";
+  const matchType = dto.matchType;
+  const offeredBloodGroup = dto.offeredBloodGroup;
+  const coldChainVerified = dto.coldChainVerified;
+  const fridgeTempCelsius = dto.fridgeTempCelsius;
+  const quarantinedUnitsExcluded = dto.quarantinedUnitsExcluded;
+  const conservationRuleApplied = dto.conservationRuleApplied;
 
   const defaultReasons: string[] = [
-    matchType === "EXACT"
-      ? `Exact ${formatBloodGroup(dto.bloodGroup)} ${formatComponent(dto.component).toLowerCase()} match (${dto.unitsFree} free units) — preserves universal O− stock.`
-      : `Verified ABO/Rh-compatible ${formatBloodGroup(offeredBloodGroup)} substitute (${dto.unitsFree} free units).`,
-    estimatedTransitHours !== undefined && distanceKm !== undefined
-      ? `Verified road corridor: ${estimatedTransitHours} hrs ETA (${distanceKm} km).`
-      : "Verified regional dispatch corridor.",
-    `Cold-chain telemetry verified at ${fridgeTempCelsius.toFixed(1)}°C (2°C–6°C window).`,
+    `Candidate snapshot: ${dto.unitsFree} free ${formatComponent(dto.component).toLowerCase()} units recorded.`,
+    estimatedTransitHours !== undefined
+      ? `Recorded estimated travel: ${estimatedTransitHours} hours; confirm with dispatch staff.`
+      : "Estimated transport time unavailable; confirm before dispatch.",
+    coldChainVerified === true
+      ? "Recorded cold-chain check passed; qualified staff must still authorize release."
+      : coldChainVerified === false
+        ? "Recorded cold-chain check failed; do not dispatch."
+        : "Cold-chain verification was not supplied; qualified staff must confirm.",
   ];
 
   return {
@@ -138,11 +134,10 @@ export function mapInventoryItem(
   organizationId: string,
   now = new Date(),
 ): InventoryItem {
-  const quarantinedTempExcursionUnits = dto.quarantinedTempExcursionUnits ?? 0;
-  const fridgeTempCelsius = dto.fridgeTempCelsius ?? 3.8;
-  const coldChainStatus: ColdChainStatus =
-    dto.coldChainStatus ??
-    (quarantinedTempExcursionUnits > 0 ? "EXCURSION_QUARANTINED" : "VERIFIED_2_6C");
+  // An absent reading or status must remain unknown, not fabricated as verified.
+  const quarantinedTempExcursionUnits = dto.quarantinedTempExcursionUnits;
+  const fridgeTempCelsius = dto.fridgeTempCelsius;
+  const coldChainStatus: ColdChainStatus | undefined = dto.coldChainStatus;
 
   return {
     id: dto.id,
@@ -196,7 +191,7 @@ export function formatRelativeTime(value: string, now = new Date()): string {
   return formatDateTime(value);
 }
 
-export function isTodayInLagos(value: string | null, now = new Date()): boolean {
+export function isTodayInNairobi(value: string | null, now = new Date()): boolean {
   if (!value) return false;
   const date = new Date(value);
   return (
