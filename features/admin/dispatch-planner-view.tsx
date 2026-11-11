@@ -8,7 +8,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   Check,
   CheckSquare,
@@ -21,6 +20,7 @@ import {
   Truck,
 } from "lucide-react";
 
+import { logoutAction } from "@/app/actions/auth";
 import {
   BloodBadge,
   Button,
@@ -331,12 +331,14 @@ export function DispatchPlannerView({
             <li><strong>Supplying bank:</strong> Independently verify stock and safety, then accept or decline. Acceptance uses server-side validation and inventory reservation; subsequent preparation, transit and delivery statuses are recorded.</li>
           </ol>
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex min-h-9 items-center rounded-full border border-[#a97330]/50 bg-white px-4 text-xs font-semibold text-[#6e4313] hover:bg-amber-50"
-            >
-              Switch to hospital or blood-bank workspace
-            </Link>
+            <form action={logoutAction} onSubmit={() => clearClientSessionCookie()}>
+              <button
+                type="submit"
+                className="inline-flex min-h-9 items-center rounded-full border border-[#a97330]/50 bg-white px-4 text-xs font-semibold text-[#6e4313] hover:bg-amber-50"
+              >
+                Sign out and choose hospital or blood-bank workspace
+              </button>
+            </form>
             <span className="text-[11px] text-[#725a41]">Requires a working backend and live stock checks.</span>
           </div>
           <p className="m-0 border-t border-amber-300/40 pt-3 text-[11px] leading-relaxed text-[#715a41]">
