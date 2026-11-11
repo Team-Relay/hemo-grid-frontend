@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   deployed-api:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -23,6 +24,7 @@ jobs:
         run: node scripts/live-demo-smoke.mjs
 
   deployed-browser:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
