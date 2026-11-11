@@ -8,7 +8,7 @@ HemoGrid is a working, human-in-the-loop emergency red-cell dispatch prototype. 
 
 | Open the prototype | Inspect the build | See proof it works |
 | --- | --- | --- |
-| **[Launch HemoGrid](https://hemogrid-eight.vercel.app/login)** | [Frontend source](https://github.com/Team-Relay/hemo-grid-frontend) · [Backend source](https://github.com/Team-Relay/hemo-grid-backend) | [Hosted transaction audit](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072) |
+| **[Launch HemoGrid](https://hemogrid-eight.vercel.app/login)** · [Watch the 3-minute video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) · [View 8 slides](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) | [Frontend source](https://github.com/Team-Relay/hemo-grid-frontend) · [Backend source](https://github.com/Team-Relay/hemo-grid-backend) | [Hosted transaction audit](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072) |
 
 **Scope:** A synthetic Kenyan demonstration, **not** clinical software. No real patient or donor records, calibrated travel times, automated clinical clearance, or physical blood transfer are claimed.
 
@@ -96,8 +96,8 @@ Real facility authorization, local transfusion-service protocol validation, unit
 | Backend setup, endpoints, evaluations | [Backend README](https://github.com/Team-Relay/hemo-grid-backend#readme) |
 | Detailed planning contract | [Dispatch planning API](https://github.com/Team-Relay/hemo-grid-backend/blob/main/docs/DISPATCH_PLANNING.md) |
 | Hosted API docs | [Swagger UI](https://hemo-grid-backend.onrender.com/swagger-ui.html) |
-| Three-minute video | To be linked after recording |
-| Eight-slide pitch deck | To be linked after finalization |
+| Three-minute video | [Watch the Team Relay demonstration](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) |
+| Eight-slide pitch deck | [Open the HemoGrid presentation](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) |
 
 ## Team Relay
 
