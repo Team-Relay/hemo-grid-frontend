@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -78,6 +78,13 @@ export function LoginForm() {
   const [password, setPassword] = useState<string>(role.password);
   const [state, setState] = useState<LoginActionState>(initialLoginState);
   const [isPending, setIsPending] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // SSR initially disables the submit button. This avoids a native submission
+  // before React attaches onSubmit (which could otherwise expose credentials in a GET URL).
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
 
   const emailError = state.fieldErrors?.email?.[0];
   const passwordError = state.fieldErrors?.password?.[0];
@@ -85,7 +92,7 @@ export function LoginForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isPending) return;
+    if (isPending || !isReady) return;
 
     const formData = new FormData(event.currentTarget);
     const validated = loginSchema.safeParse({
@@ -275,7 +282,7 @@ export function LoginForm() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form method="post" onSubmit={handleSubmit} noValidate>
             <fieldset className="mb-5 border-0 p-0">
               <legend className="mb-2.5 text-[11.5px] font-medium text-[#35423f]">
                 Workspace type
@@ -297,7 +304,7 @@ export function LoginForm() {
                         : "text-muted hover:bg-white/70 hover:text-ink",
                     )}
                     aria-pressed={item.id === role.id}
-                    disabled={isPending}
+                    disabled={isPending || !isReady}
                   >
                     <span
                       className={cn(
@@ -391,6 +398,7 @@ export function LoginForm() {
 
             <Button
               type="submit"
+              disabled={!isReady}
               isLoading={isPending}
               loadingText="Opening workspace…"
               className="min-h-12 w-full text-[13px]"
