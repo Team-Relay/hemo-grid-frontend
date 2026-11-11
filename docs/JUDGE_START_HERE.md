@@ -12,6 +12,12 @@ HemoGrid is a working, human-in-the-loop emergency red-cell dispatch prototype. 
 
 **Scope:** A synthetic Kenyan demonstration, **not** clinical software. No real patient or donor records, calibrated travel times, automated clinical clearance, or physical blood transfer are claimed.
 
+**The working interface**
+
+[![HemoGrid Network Mission Control, captured from the hosted coordinator demo](../public/judges/mission-control.png)](https://hemogrid-eight.vercel.app/login)
+
+*Actual hosted coordinator screenshot · Synthetic demonstration data · Advisory planning only.*
+
 ## Judge access (no account setup)
 
 **You do not need your own email address or password.** The [live login](https://hemogrid-eight.vercel.app/login) includes three demo roles: **Hospital**, **Blood bank** and **Platform admin**.
