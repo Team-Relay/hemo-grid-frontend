@@ -34,6 +34,7 @@ export type ApiErrorCode =
   | "ORGANIZATION_INACTIVE"
   | "ORGANIZATION_TYPE_MISMATCH"
   | "REQUEST_ALREADY_FINALIZED"
+  | "CONCURRENT_MODIFICATION"
   | "INTERNAL_ERROR";
 
 export interface BackendFieldError {
