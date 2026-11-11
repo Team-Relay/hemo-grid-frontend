@@ -151,148 +151,75 @@ export function LoginForm() {
   }
 
   return (
-    <main className="grid min-h-screen min-w-0 grid-cols-1 bg-[#f7f9fb] lg:grid-cols-[minmax(0,1.035fr)_minmax(0,0.965fr)]">
-      <section className="relative hidden min-h-screen overflow-hidden bg-[#102b39] px-[clamp(36px,4.1vw,68px)] py-9 text-white lg:flex lg:flex-col lg:justify-between">
+    <main className="grid h-dvh min-h-0 min-w-0 grid-cols-1 overflow-hidden bg-[#f6f8f8] lg:grid-cols-[minmax(0,1.035fr)_minmax(0,0.965fr)]">
+      <section className="relative hidden h-full min-h-0 overflow-hidden bg-[#102b39] px-[clamp(32px,4.2vw,70px)] py-[clamp(20px,3.8vh,38px)] text-white lg:flex lg:flex-col" aria-label="HemoGrid dispatch mission">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute -right-[240px] -top-[300px] h-[650px] w-[650px] rounded-full border border-[#70c3b6]/15" />
-          <div className="absolute -right-[160px] -top-[210px] h-[480px] w-[480px] rounded-full border border-[#70c3b6]/15" />
-          <div className="absolute -bottom-44 -left-48 h-[430px] w-[430px] rounded-full bg-[#234959]/40 blur-[90px]" />
+          <div className="absolute -right-40 -top-52 h-[540px] w-[540px] rounded-full border border-[#8ce7d5]/10" />
+          <div className="absolute -right-24 -top-36 h-[390px] w-[390px] rounded-full border border-[#8ce7d5]/10" />
+          <div className="absolute -bottom-52 -left-44 h-[450px] w-[450px] rounded-full bg-[#29535c]/25 blur-[100px]" />
         </div>
 
-        <header className="relative z-10 flex items-center justify-between gap-4">
+        <header className="relative z-10 flex shrink-0 items-center justify-between gap-4">
           <Link href="/login" className="inline-flex items-center gap-2.5 text-[16px] font-bold tracking-[-0.035em] text-white">
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] border border-[#80e1d1]/30 bg-[#80e1d1]/10">
-              <Activity size={17} className="text-[#91f0dd]" strokeWidth={2.2} />
+            <span className="grid h-8 w-8 place-items-center rounded-[10px] border border-[#a1ecde]/25 bg-[#a1ecde]/10">
+              <Activity size={17} strokeWidth={2} className="text-[#a0e8d9]" />
             </span>
             HemoGrid
           </Link>
-          <span className="inline-flex items-center gap-2 text-[10px] font-medium text-[#b5cad2]">
-            <ShieldCheck size={13} className="text-[#90e8d7]" />
-            Synthetic demo workspace
-          </span>
+          <span className="text-[10px] font-medium text-[#a9c2cb]">Synthetic demo</span>
         </header>
 
-        <div className="relative z-10 max-w-[610px] py-8">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#70c3b6]/25 bg-[#80e1d1]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#a2ecdd]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#9ce8db] motion-safe:animate-pulse" aria-hidden="true" />
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-center py-5">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#8ce7d5]/25 bg-[#8ce7d5]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#a4eedd]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#a4eedd]" aria-hidden="true" />
             Emergency blood dispatch
           </span>
-
-          <h1 className="mt-6 max-w-[600px] text-[clamp(38px,3.65vw,59px)] font-semibold leading-[1.075] tracking-[-0.052em] text-white">
+          <h1 className="mt-5 max-w-[650px] text-[clamp(35px,3.55vw,58px)] font-semibold leading-[1.09] tracking-[-0.05em] text-white">
             The closest blood bank{" "}
-            <span className="text-[#92e8d7]">is not always</span>{" "}
+            <span className="text-[#9ae6d9]">is not always</span>{" "}
             the right one.
           </h1>
-          <p className="mt-5 max-w-[530px] text-[13.5px] leading-[1.9] text-[#c4d4da]">
-            Proximity alone cannot confirm usable blood. HemoGrid helps teams review
-            recorded stock, blood-group rules and cold-chain evidence, then coordinate
-            supply across competing emergency requests.
+          <p className="mt-5 max-w-[470px] text-[13px] leading-[1.75] text-[#c3d5da]">
+            Match available blood, not just distance. Make every urgent dispatch
+            decision with stock, compatibility and cold-chain evidence.
           </p>
 
-          <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3">
-            <span className="inline-flex items-center gap-2 text-[11px] font-medium text-[#e0efed]">
-              <Building2 size={15} className="text-[#93e9d9]" /> Inventory-aware matching
-            </span>
-            <span className="inline-flex items-center gap-2 text-[11px] font-medium text-[#e0efed]">
-              <ThermometerSnowflake size={15} className="text-[#93e9d9]" /> Cold-chain safeguards
-            </span>
-            <span className="inline-flex items-center gap-2 text-[11px] font-medium text-[#e0efed]">
-              <Activity size={15} className="text-[#93e9d9]" /> Joint dispatch planning
-            </span>
+          <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2.5 text-[11px] font-medium text-[#d5ecea]">
+            <span className="inline-flex items-center gap-1.5"><Building2 size={14} className="text-[#9ae6d9]" /> Available stock</span>
+            <span className="inline-flex items-center gap-1.5"><ShieldCheck size={14} className="text-[#9ae6d9]" /> Compatible supply</span>
+            <span className="inline-flex items-center gap-1.5"><ThermometerSnowflake size={14} className="text-[#9ae6d9]" /> Cold-chain checks</span>
           </div>
         </div>
 
-        <div className="relative z-10 rounded-[20px] border border-[#7398a3]/25 bg-white/[0.06] p-4 shadow-[0_16px_45px_rgba(1,15,24,0.16)] backdrop-blur-sm sm:p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="m-0 text-[12px] font-semibold tracking-[-0.01em] text-white">
-                A better dispatch decision
-              </p>
-              <p className="mb-0 mt-1 text-[10.5px] text-[#abc3cb]">
-                An illustrative decision path, not live clinical data
-              </p>
-            </div>
-            <span className="shrink-0 rounded-full border border-[#8ee1d0]/20 bg-[#8ee1d0]/10 px-2.5 py-1 text-[10px] font-semibold text-[#b7f8ea]">
-              Demo
-            </span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-2.5">
-            <div className="min-w-0 rounded-xl border border-[#ad7b7c]/20 bg-[#4b3039]/45 p-3">
-              <span className="block text-[9.5px] font-bold uppercase tracking-[0.09em] text-[#f1b7b4]">
-                Distance only
-              </span>
-              <strong className="mt-1.5 block text-[12px] font-semibold text-white">Nearest site</strong>
-              <span className="mt-1 block text-[10px] leading-4 text-[#d1c3c9]">
-                Stock and safety still unknown
-              </span>
-            </div>
-            <div className="flex items-center justify-center" aria-hidden="true">
-              <ArrowRight className="text-[#95e4d5]" size={17} />
-            </div>
-            <div className="min-w-0 rounded-xl border border-[#8bdccc]/30 bg-[#4d9b8f]/15 p-3">
-              <span className="block text-[9.5px] font-bold uppercase tracking-[0.09em] text-[#9df0db]">
-                Evidence-led
-              </span>
-              <strong className="mt-1.5 block text-[12px] font-semibold text-white">Eligible proposal</strong>
-              <span className="mt-1 block text-[10px] leading-4 text-[#c6dedb]">
-                Stock, compatibility and cold chain
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/15 pt-4">
-            {[
-              ["47", "Seeded facilities"],
-              ["2–5", "Requests per plan"],
-              ["3", "Staff workspaces"],
-            ].map(([value, label]) => (
-              <div key={label} className="min-w-0">
-                <strong className="block text-[17px] font-semibold tracking-tight text-white tabular-nums">
-                  {value}
-                </strong>
-                <span className="mt-1 block text-[9.5px] leading-4 text-[#aac2cb]">
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <footer className="relative z-10 flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-white/15 pt-4 text-[10px] text-[#9fbfc7]">
+          <span>47 synthetic facilities</span>
+          <span className="text-[#8ce7d5]" aria-hidden="true">·</span>
+          <span>Joint dispatch planning</span>
+          <span className="text-[#8ce7d5]" aria-hidden="true">·</span>
+          <span>Human approval required</span>
+        </footer>
       </section>
 
-      <section className="relative flex min-h-screen min-w-0 items-center justify-center bg-[#f7f9fb] px-4 py-8 sm:px-7 sm:py-10 lg:px-[clamp(32px,4.3vw,76px)]">
-        <div className="w-full max-w-[476px] rounded-[24px] border border-[#e2e8eb] bg-white px-5 py-7 shadow-[0_24px_64px_rgba(19,42,55,0.055)] sm:px-9 sm:py-9">
-          <div className="mb-7 lg:hidden">
+      <section className="flex h-full min-h-0 min-w-0 items-center justify-center overflow-y-auto bg-[#f6f8f8] px-4 py-3 sm:px-6 lg:px-[clamp(28px,4vw,70px)]" aria-label="Sign in">
+        <div className="w-full max-w-[430px] rounded-[22px] border border-[#e5eaea] bg-white px-5 py-5 shadow-[0_20px_60px_rgba(16,43,57,0.055)] sm:px-7 sm:py-6">
+          <div className="mb-4 lg:hidden">
             <Wordmark variant="plain" />
-            <p className="mb-0 mt-4 max-w-[360px] text-[18px] font-semibold leading-[1.25] tracking-[-0.035em] text-[#123340]">
+            <p className="mb-0 mt-3 text-[18px] font-semibold leading-[1.2] tracking-[-0.035em] text-[#102b39]">
               The closest blood bank is not always the right one.
             </p>
-            <p className="mb-0 mt-2 text-[11px] font-medium text-[#498176]">
-              Emergency blood dispatch · Synthetic demonstration
-            </p>
           </div>
 
-          <div className="mb-6">
-            <span className="mb-4 grid h-11 w-11 place-items-center rounded-xl border border-[#c9e3dc] bg-[#effaf6] text-[#217f71]">
-              <LockKeyhole size={19} strokeWidth={1.8} />
-            </span>
-            <p className="mb-2 text-[10.5px] font-bold uppercase tracking-[0.1em] text-brand">
-              Your coordination workspace
-            </p>
-            <h2 className="m-0 text-[30px] font-semibold tracking-[-0.045em] text-ink sm:text-[32px]">
+          <header className="mb-4">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#14796c]">Demo workspace</p>
+            <h2 className="m-0 text-[27px] font-semibold leading-[1.15] tracking-[-0.045em] text-[#102b39]">
               Sign in to HemoGrid
             </h2>
-            <p className="mt-3 max-w-[420px] text-[13px] font-light leading-6 text-muted">
-              Choose a demo role to explore the hospital, blood-bank or network-coordination workflow.
-            </p>
-          </div>
+          </header>
 
           <form method="post" onSubmit={handleSubmit} noValidate>
-            <fieldset className="mb-5 border-0 p-0">
-              <legend className="mb-2.5 text-[11.5px] font-medium text-[#35423f]">
-                Workspace type
-              </legend>
-              <div className="grid grid-cols-3 gap-1 rounded-[15px] border border-[#e5ebed] bg-[#f5f8f8] p-1.5">
+            <fieldset className="mb-3 border-0 p-0">
+              <legend className="mb-1.5 text-[11px] font-semibold text-[#344a50]">Workspace</legend>
+              <div className="grid grid-cols-3 gap-1 rounded-xl border border-[#e1e9e8] bg-[#f3f7f6] p-1">
                 {roles.map((item) => (
                   <button
                     type="button"
@@ -303,44 +230,26 @@ export function LoginForm() {
                       setState(initialLoginState);
                     }}
                     className={cn(
-                      "relative flex min-h-[75px] min-w-0 flex-col items-start justify-center gap-2 rounded-[11px] px-2.5 text-left text-[10.5px] font-medium transition-all duration-150 disabled:cursor-wait sm:px-3",
+                      "relative flex min-h-[57px] min-w-0 flex-col items-start justify-center gap-1 rounded-[9px] px-2 text-left text-[10px] font-medium transition-colors disabled:cursor-wait sm:px-3",
                       item.id === role.id
-                        ? "bg-white text-brand-dark shadow-[0_2px_10px_rgba(38,42,39,0.08)] ring-1 ring-border"
-                        : "text-muted hover:bg-white/70 hover:text-ink",
+                        ? "bg-white text-[#086b60] shadow-sm ring-1 ring-[#c6dcd6]"
+                        : "text-[#657982] hover:bg-white/75 hover:text-[#102b39]",
                     )}
                     aria-pressed={item.id === role.id}
                     disabled={isPending || !isReady}
                   >
-                    <span
-                      className={cn(
-                        "grid h-7 w-7 place-items-center rounded-lg border",
-                        item.id === role.id
-                          ? "border-[#d7d8fb] bg-brand-soft text-brand"
-                          : "border-border bg-white text-[#5d6966]",
-                      )}
-                    >
-                      <item.icon size={16} strokeWidth={1.8} />
-                    </span>
+                    <item.icon size={15} strokeWidth={1.8} />
                     <span className="max-w-full truncate">{item.label}</span>
-                    {item.id === role.id && (
-                      <Check size={13} className="absolute right-2.5 top-2.5 text-brand" />
-                    )}
+                    {item.id === role.id && <Check size={12} className="absolute right-1.5 top-1.5 text-[#087668]" />}
                   </button>
                 ))}
               </div>
             </fieldset>
 
-            <p className="mb-5 mt-2 text-[10.5px] leading-5 text-muted">Prefilled synthetic credentials. No patient data is required.</p>
-
-            <div className="mb-4">
-              <label
-                htmlFor="email"
-                className="mb-2 block text-[11.5px] font-medium text-[#35423f]"
-              >
-                Work email
-              </label>
-              <div className="flex min-h-12 items-center gap-2.5 rounded-xl border border-border-strong bg-white px-3.5 text-muted-2 transition focus-within:border-brand/60 focus-within:text-brand focus-within:ring-4 focus-within:ring-brand-soft">
-                <Mail size={16} strokeWidth={1.8} />
+            <div className="mb-3">
+              <label htmlFor="email" className="mb-1 block text-[11px] font-semibold text-[#344a50]">Work email</label>
+              <div className="flex min-h-[42px] items-center gap-2.5 rounded-[10px] border border-[#d6e2e1] bg-white px-3 text-[#78929a] transition-colors focus-within:border-[#168778] focus-within:ring-2 focus-within:ring-[#ddf4ef]">
+                <Mail size={15} strokeWidth={1.8} />
                 <input
                   id="email"
                   name="email"
@@ -349,26 +258,19 @@ export function LoginForm() {
                   readOnly
                   aria-invalid={Boolean(emailError)}
                   aria-describedby={emailError ? "email-error" : undefined}
-                  className="min-h-[46px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-[#4e5b58] outline-none"
+                  className="h-[42px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[12px] text-[#253b43] outline-none"
                 />
               </div>
               <FieldError id="email-error" message={emailError} />
             </div>
 
-            <div className="mb-4">
-              <div className="mb-2 flex items-baseline justify-between">
-                <label htmlFor="password" className="text-[11.5px] font-medium text-[#35423f]">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-[10.5px] font-medium text-brand hover:text-brand-dark"
-                >
-                  Forgot password?
-                </Link>
+            <div className="mb-3">
+              <div className="mb-1 flex items-baseline justify-between gap-2">
+                <label htmlFor="password" className="text-[11px] font-semibold text-[#344a50]">Password</label>
+                <Link href="/forgot-password" className="text-[10px] font-medium text-[#087668] hover:underline">Forgot password?</Link>
               </div>
-              <div className="flex min-h-12 items-center gap-2.5 rounded-xl border border-border-strong bg-white pl-3.5 text-muted-2 transition focus-within:border-brand/60 focus-within:text-brand focus-within:ring-4 focus-within:ring-brand-soft">
-                <LockKeyhole size={16} strokeWidth={1.8} />
+              <div className="flex min-h-[42px] items-center gap-2.5 rounded-[10px] border border-[#d6e2e1] bg-white pl-3 text-[#78929a] transition-colors focus-within:border-[#168778] focus-within:ring-2 focus-within:ring-[#ddf4ef]">
+                <LockKeyhole size={15} strokeWidth={1.8} />
                 <input
                   id="password"
                   name="password"
@@ -377,28 +279,23 @@ export function LoginForm() {
                   onChange={(event) => setPassword(event.target.value)}
                   aria-invalid={Boolean(passwordError || formError)}
                   aria-describedby={passwordError || formError ? "login-error" : undefined}
-                  className="min-h-[46px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-ink outline-none"
+                  className="h-[42px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[12px] text-[#253b43] outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setVisible(!visible)}
                   aria-label={visible ? "Hide password" : "Show password"}
-                  className="grid h-11 w-11 place-items-center border-0 bg-transparent text-muted transition-colors hover:text-ink"
+                  className="grid h-[42px] w-[42px] shrink-0 place-items-center border-0 bg-transparent text-[#78929a] hover:text-[#102b39]"
                 >
-                  {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+                  {visible ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               <FieldError id="login-error" message={passwordError || formError} />
             </div>
 
-            <label className="mb-6 flex items-center gap-2.5 text-[11px] font-light text-[#53615e]">
-              <input
-                name="remember"
-                type="checkbox"
-                defaultChecked
-                className="h-3.5 w-3.5 accent-brand"
-              />
-              <span>Keep me signed in on this device</span>
+            <label className="mb-4 flex items-center gap-2 text-[10.5px] text-[#60757b]">
+              <input name="remember" type="checkbox" defaultChecked className="h-3.5 w-3.5 accent-[#0c766a]" />
+              <span>Keep me signed in</span>
             </label>
 
             <Button
@@ -406,24 +303,19 @@ export function LoginForm() {
               disabled={!isReady}
               isLoading={isPending}
               loadingText="Opening workspace…"
-              className="min-h-12 w-full text-[13px]"
+              className="min-h-[44px] w-full !border-[#0b7469] !bg-[#0b7469] text-[12px] !text-white hover:!bg-[#095e56]"
             >
               Continue to workspace <ArrowRight size={16} />
             </Button>
-
-            <div className="mt-5 flex items-start gap-2.5 border-t border-border pt-4 text-[10px] font-normal leading-5 text-muted">
-              <ShieldCheck size={14} className="mt-0.5 shrink-0 text-success" />
-              <p className="m-0">
-                Demo sign-in is verified by the HemoGrid API. Do not enter real patient information.
-              </p>
-            </div>
           </form>
 
-          <p className="mt-5 text-center text-[9.5px] font-medium uppercase tracking-[0.11em] text-muted-2">
-            HemoGrid · Emergency request and dispatch · Prototype
-          </p>
+          <div className="mt-4 flex items-center gap-1.5 border-t border-[#edf1f0] pt-3 text-[10px] text-[#6b8086]">
+            <ShieldCheck size={13} className="shrink-0 text-[#168778]" />
+            <span>Synthetic demonstration. No patient data.</span>
+          </div>
         </div>
       </section>
     </main>
+
   );
 }
