@@ -28,6 +28,23 @@ describe("toApiClientError", () => {
     });
   });
 
+  it("preserves the backend concurrency code for refresh-and-reconcile UI", () => {
+    const error = toApiClientError(
+      {
+        status: 409,
+        error: "CONFLICT",
+        code: "CONCURRENT_MODIFICATION",
+        message: "This request changed while another officer was acting.",
+        path: "/api/v1/blood-requests/example/cancel",
+        fieldErrors: [],
+      },
+      500,
+      "fallback",
+    );
+    expect(error.status).toBe(409);
+    expect(error.code).toBe("CONCURRENT_MODIFICATION");
+  });
+
   it("falls back safely when an upstream response is not the documented shape", () => {
     expect(toApiClientError("gateway error", 502, "API unavailable")).toMatchObject({
       status: 502,
