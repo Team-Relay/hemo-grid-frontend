@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -59,6 +59,11 @@ const roles = [
   },
 ] as const;
 
+// Stable, zero-event external store for the SSR -> hydrated client transition.
+const subscribeHydration = () => () => {};
+const readyClientSnapshot = () => true;
+const unreadyServerSnapshot = () => false;
+
 function fieldErrorsByName(error: ApiClientError): LoginActionState["fieldErrors"] {
   const grouped: NonNullable<LoginActionState["fieldErrors"]> = {};
 
@@ -78,13 +83,13 @@ export function LoginForm() {
   const [password, setPassword] = useState<string>(role.password);
   const [state, setState] = useState<LoginActionState>(initialLoginState);
   const [isPending, setIsPending] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-
-  // SSR initially disables the submit button. This avoids a native submission
-  // before React attaches onSubmit (which could otherwise expose credentials in a GET URL).
-  useEffect(() => {
-    setIsReady(true);
-  }, []);
+  // During SSR and hydration, the native submit remains disabled.
+  // React switches to the client snapshot after hydration has completed.
+  const isReady = useSyncExternalStore(
+    subscribeHydration,
+    readyClientSnapshot,
+    unreadyServerSnapshot,
+  );
 
   const emailError = state.fieldErrors?.email?.[0];
   const passwordError = state.fieldErrors?.password?.[0];
