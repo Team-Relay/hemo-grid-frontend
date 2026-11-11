@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 const API = "https://hemo-grid-backend.onrender.com/api/v1";
 const CASE_REFERENCE = "HG-SYNTHETIC-E2E-20261111-ONE-UNIT";
 const UNIT_QUANTITY = 1;
+const PREFLIGHT_ONLY = process.argv.includes("--preflight");
 const WAIT_MS = 45000;
 
 const hospital = {
@@ -97,7 +98,7 @@ async function cancelIfSafe() {
 }
 
 async function main() {
-  if (process.env.HEMOGRID_ALLOW_SYNTHETIC_MUTATION !== "I_CONFIRM_SYNTHETIC_ONLY") {
+  if (!PREFLIGHT_ONLY && process.env.HEMOGRID_ALLOW_SYNTHETIC_MUTATION !== "I_CONFIRM_SYNTHETIC_ONLY") {
     throw new Error("Mutation disabled. Set HEMOGRID_ALLOW_SYNTHETIC_MUTATION=I_CONFIRM_SYNTHETIC_ONLY for synthetic-only testing.");
   }
   log("HemoGrid controlled hosted end-to-end rehearsal");
@@ -161,6 +162,10 @@ async function main() {
   log("PREFLIGHT PASS: bank inventory row " + row.id + " (" + row.bloodGroup + ")");
   log("Recorded cold-chain check: " + row.coldChainStatus +
     "; initial dispatchable " + baseline.dispatchableUnitsFree);
+  if (PREFLIGHT_ONLY) {
+    log("PASS preflight: synthetic demo credentials, bank stock and source checks. No request created.");
+    return;
+  }
 
   const created = await api("/blood-requests", {
     method: "POST",
