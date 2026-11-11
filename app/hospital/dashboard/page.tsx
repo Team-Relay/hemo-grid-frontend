@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/core";
 import { formatBloodGroup, formatComponent } from "@/lib/domain";
 import { getHospitalDashboardData } from "@/lib/data/hospital";
-import { isTodayInLagos } from "@/lib/api/mappers";
+import { isTodayInNairobi } from "@/lib/api/mappers";
 import type { BloodRequest, BloodRequestStatus } from "@/types/domain";
 
 const activeStatuses: readonly BloodRequestStatus[] = [
@@ -43,7 +43,7 @@ export default async function HospitalDashboard() {
   const awaitingResponse = requests.filter((request) => request.status === "REQUESTED").length;
   const inTransit = requests.filter((request) => request.status === "IN_TRANSIT").length;
   const completedToday = requests.filter(
-    (request) => request.status === "DELIVERED" && isTodayInLagos(request.deliveredAt ?? null),
+    (request) => request.status === "DELIVERED" && isTodayInNairobi(request.deliveredAt ?? null),
   ).length;
   const attentionRequests = requests.filter(needsAttention).slice(0, 3);
 
