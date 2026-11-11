@@ -27,6 +27,35 @@ test.describe("hosted three-role demo navigation", () => {
     await expect(page.getByText(/application error: a server-side exception/i)).toHaveCount(0);
   }
 
+  test("login communicates the dispatch problem and keeps all demo roles accessible", async ({ page }) => {
+    await page.goto("/login", { waitUntil: "domcontentloaded", timeout: 90_000 });
+    await expect(page.getByRole("heading", {
+      name: "The closest blood bank is not always the right one.",
+    })).toBeVisible();
+    await expect(page.getByText("An illustrative decision path, not live clinical data")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continue to workspace" })).toBeEnabled();
+
+    await page.getByRole("button", { name: "Blood bank", exact: true }).click();
+    await expect(page.locator("#email")).toHaveValue("bank.demo@hemogrid.local");
+    await page.getByRole("button", { name: "Platform admin", exact: true }).click();
+    await expect(page.locator("#email")).toHaveValue("admin.demo@hemogrid.local");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByText(
+      "The closest blood bank is not always the right one.",
+      { exact: true },
+    ).last()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continue to workspace" })).toBeVisible();
+
+    const size = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(size.scrollWidth, "Login must not overflow on mobile").toBeLessThanOrEqual(
+      size.viewport + 3,
+    );
+  });
+
   test("hospital can sign in and view request workspaces", async ({ page }) => {
     await signIn(page, "Hospital", "/hospital/dashboard");
     await page.goto("/hospital/requests", { waitUntil: "domcontentloaded" });
