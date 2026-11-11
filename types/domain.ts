@@ -58,6 +58,7 @@ export interface InventoryItem {
   component: BloodComponent;
   availableUnits: number;
   reservedUnits: number;
+  dispatchableUnitsFree?: number;
   lastUpdated: string;
   quarantinedTempExcursionUnits?: number;
   fridgeTempCelsius?: number;
