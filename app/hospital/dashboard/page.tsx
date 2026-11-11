@@ -49,7 +49,7 @@ export default async function HospitalDashboard() {
 
   return (
     <>
-      <div className="grid grid-cols-[minmax(0,1.08fr)_minmax(430px,0.92fr)] items-stretch gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.08fr)_minmax(430px,0.92fr)] items-stretch gap-4">
         <div className="flex flex-col gap-[14px] min-w-0">
           <Panel className="min-h-[120px] flex items-start justify-between gap-5 p-[23px] px-6">
             <div>
@@ -81,7 +81,7 @@ export default async function HospitalDashboard() {
             </div>
           </Panel>
 
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard
               label="Active requests"
               value={activeRequests.length}
@@ -149,7 +149,7 @@ export default async function HospitalDashboard() {
           }
         />
         {requests.length > 0 ? (
-          <div className="grid grid-cols-4 gap-[10px]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-[10px]">
             {requests.slice(0, 4).map((request) => (
               <Link
                 href={`/hospital/requests/${request.id}`}
