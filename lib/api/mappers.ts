@@ -10,7 +10,7 @@ import type {
   BackendCandidate,
   BackendInventoryItem,
 } from "@/lib/api/backend-types";
-import { formatBloodGroup, formatComponent } from "@/lib/domain";
+import { formatComponent } from "@/lib/domain";
 import type {
   BloodRequest,
   BloodRequestStatus,
