@@ -1,5 +1,7 @@
 # Team Relay: HemoGrid emergency blood dispatch
 
+**The closest blood bank is not always the right one.**
+
 **Terumo BCT Africa Hackathon 2026 · Challenge: Emergency request and dispatch**
 
 HemoGrid is a demonstration of how hospitals and blood banks can coordinate urgent red-cell requests using recorded inventory, quarantine flags, compatibility rules, and transport estimates. It gives each responsible officer a proposal they can inspect and change before the supplying bank reserves stock. A network coordinator can also preview joint supplier plans for two to five staff-approved critical requests competing for the same stock.
@@ -29,6 +31,15 @@ The frontend uses Next.js 16, React 19 and TypeScript. The backend uses Spring B
 - Coordinator joint planning view with solver status, shared-stock evidence and comparative estimated journey hours.
 - Clear treatment of stale or conflicting updates, including a concurrent-modification response.
 - Automated frontend unit, lint, type and production-build verification in GitHub Actions.
+- A complete hosted synthetic create → select → accept/reserve → prepare → transit → deliver transaction with reconciled inventory balances.
+
+### Verified hosted synthetic transaction
+
+A controlled GitHub Actions rehearsal completed **hospital create → supplier select → bank accept/reserve → PREPARING → IN_TRANSIT → DELIVERED** against the deployed Render API on 11 November 2026. The supplying demo bank reserved one A-positive red-cell unit, and stock accounting reconciled from **10 available / 0 reserved** to **9 available / 0 reserved** after delivery. The hospital's authoritative request status was DELIVERED.
+
+[View the successful live transaction audit](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072) · [Rehearsal safeguards](docs/CONTROLLED_DEMO_REHEARSAL.md)
+
+This was **a synthetic software lifecycle test**, not an actual shipment, clinical crossmatch, or patient outcome. Its routine one-unit request was kept out of the coordinator's critical-emergency queue.
 
 ### What is simulated or not finished
 
@@ -50,7 +61,7 @@ The frontend uses Next.js 16, React 19 and TypeScript. The backend uses Spring B
 | Video (3 minutes maximum) | Recording link pending |
 | Pitch slides (8 maximum) | Deck link pending |
 
-These links indicate the intended deployments; check [deployment status](docs/DEPLOYMENT_PREPARATION.md) and the running service before the live demonstration.
+The public frontend and backend have passed [hosted three-role API and browser checks](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42945618277). Live availability should still be checked before presenting.
 
 **Synthetic demonstration logins:** Hospital `hospital.demo@hemogrid.local` / `HospitalDemo123!`; bank `bank.demo@hemogrid.local` / `BankDemo123!`; coordinator `admin.demo@hemogrid.local` / `AdminDemo123!`. Additional regional bank accounts are documented in the backend README. Do not use these shared passwords with real data.
 
@@ -77,7 +88,7 @@ npm test
 npm run build
 ~~~
 
-The browser end-to-end suite requires a running frontend and backend; use `npm run test:e2e` in that environment. Backend deployment and database migration checks are separate from frontend CI.
+The browser end-to-end suite requires a running frontend and backend; use `npm run test:e2e` in that environment. Backend deployment and database migration checks are separate from frontend CI. The [controlled hosted lifecycle rehearsal](docs/CONTROLLED_DEMO_REHEARSAL.md) has its own explicit synthetic-only gate and audit trail.
 
 ## Architecture
 
@@ -157,8 +168,7 @@ Team Relay owns the problem definition, implementation decisions, test interpret
 
 ## Known limits and next steps
 
-1. Check that Render has deployed the latest backend, applied migrations through V10, and passed the read-only smoke test.
-2. Run the hosted browser workflow across coordinator, hospital and bank accounts; resolve any cross-origin or stale-session failures.
-3. Confirm the real request-selection and stock-reservation sequence before recording the demonstration.
-4. Publish the video and slide deck with the agreed submission template, keeping benchmark claims tied to their synthetic denominators.
-5. Treat clinical validation, live telemetry, unit traceability, calibrated journey estimates and connectivity fallbacks as future work.
+1. Record a short, staff-led walkthrough of the coordinator's advisory plan and the hospital-to-bank request lifecycle using only synthetic records.
+2. Publish the three-minute video and eight-slide pitch deck under the submission template, tying benchmark claims to their exact synthetic denominators.
+3. Review and classify npm dependency advisories before any production deployment.
+4. Treat clinical validation, real inventory/temperature feeds, unit-level traceability, calibrated travel times and offline/SMS fallbacks as future work.
