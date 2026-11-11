@@ -211,10 +211,10 @@ export function ShellTools({ role, config }: { role: AppRole; config: ShellConfi
   }
 
   return (
-    <div className="flex items-center gap-2 relative ml-auto" ref={toolsRef}>
-      {config.action && <ShellActionButton action={config.action} />}
+    <div className="flex shrink-0 items-center gap-2 relative ml-auto" ref={toolsRef}>
+      {config.action && <div className="hidden xl:block"><ShellActionButton action={config.action} /></div>}
 
-      <div className="relative">
+      <div className="relative hidden sm:block">
         <button
           type="button"
           className={cn(
@@ -288,7 +288,7 @@ export function ShellTools({ role, config }: { role: AppRole; config: ShellConfi
         )}
       </div>
 
-      <div className="relative">
+      <div className="relative hidden sm:block">
         <button
           type="button"
           className={cn(
@@ -364,7 +364,7 @@ export function ShellTools({ role, config }: { role: AppRole; config: ShellConfi
         <button
           type="button"
           className={cn(
-            "flex items-center gap-[9px] max-w-[205px] h-10 p-1 pl-1 pr-3 bg-surface shadow-[0_2px_8px_rgba(0,0,0,0.02)] border-0 rounded-full text-left transition-all duration-[160ms] ease-in-out hover:bg-surface-muted hover:-translate-y-[1px]",
+            "flex items-center gap-[9px] w-10 xl:w-auto xl:max-w-[205px] h-10 p-1 xl:pr-3 bg-surface shadow-[0_2px_8px_rgba(0,0,0,0.02)] border-0 rounded-full text-left transition-all duration-[160ms] ease-in-out hover:bg-surface-muted hover:-translate-y-[1px]",
             openPanel === "profile" && "bg-surface-muted -translate-y-[1px]",
           )}
           onClick={() => togglePanel("profile")}
@@ -374,13 +374,13 @@ export function ShellTools({ role, config }: { role: AppRole; config: ShellConfi
           <span className="w-[34px] h-[34px] grid place-items-center shrink-0 text-[#fff] bg-[#37433f] rounded-full text-[11px] font-bold">
             {config.initials}
           </span>
-          <span className="flex flex-col min-w-0">
+          <span className="hidden xl:flex flex-col min-w-0">
             <strong className="overflow-hidden text-ellipsis text-[11.5px] whitespace-nowrap">
               {config.organization}
             </strong>
             <small className="mt-[2px] text-muted text-[10.5px]">{config.roleLabel}</small>
           </span>
-          <ChevronDown size={14} strokeWidth={1.8} />
+          <ChevronDown size={14} strokeWidth={1.8} className="hidden xl:block" />
         </button>
 
         {openPanel === "profile" && (
